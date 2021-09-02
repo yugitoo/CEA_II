@@ -17,13 +17,57 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Bibliotecas
 ```{r}
 library(readxl)
+library(robustbase)
+library(ggplot2)
+library(RColorBrewer) #baixar paleta de cores
+
 ```
 
 
 ## Leitura dos dados
 ```{r}
-db <- read_excel("Dados.xlsx", sheet = "dados")
-head(db)
+bd <- read_excel("Dados.xlsx", sheet = "dados")
+bd$grupo <- factor(bd$grupo)
+head(bd)
 ```
 
 ## Analise descritiva
+
+Parametros uteis
+```{r}
+cores <- brewer.pal(3, "Set2")
+col_names <- names(bd)
+
+```
+
+
+### Boxplots e Densidades
+```{r}
+col_box <- c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitos boxplots
+
+par(mfrow=c(2,3))
+
+for (i in col_box) {
+  j <- eval(parse(text = paste0("bd$",i))) # coluna i
+  adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo"))
+  adjbox(j, col=cores, main = paste0(i," geral"))
+  plot(density(na.omit(j)), main = paste0(i," geral"))
+}
+
+```
+
+## Dispersao
+```{r}
+col_disp <-  c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitas as densidades
+col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
+
+par(mfrow=c(2,2))
+for (i in col_box) {
+  j <- eval(parse(text = paste0("bd$",i))) # coluna i
+  for (k in col_resp) {
+    l <- eval(parse(text = paste0("bd$",k)))
+    plot(j,l,pch = 16,  main = paste0(i," por ", k), col=bd$grupo)  
+  }
+}
+```
+
