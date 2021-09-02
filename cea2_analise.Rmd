@@ -1,0 +1,29 @@
+---
+title: "Untitled"
+author:
+- "Hei Yin Kwok"
+- "Karine Tavares Cruz"
+- "Yugo Oyama"
+date: "2/9/2021"
+output: pdf_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Bibliotecas
+```{r}
+library(readxl)
+```
+
+
+## Leitura dos dados
+```{r}
+db <- read_excel("Dados.xlsx", sheet = "dados")
+head(db)
+```
+
+## Analise descritiva
