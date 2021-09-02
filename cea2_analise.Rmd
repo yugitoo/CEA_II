@@ -18,7 +18,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(readxl)
 library(robustbase)
-library(ggplot2)
 library(RColorBrewer) #baixar paleta de cores
 
 ```
@@ -45,7 +44,7 @@ col_names <- names(bd)
 ```{r}
 col_box <- c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitos boxplots
 
-par(mfrow=c(2,3))
+par(mfrow=c(2,3)) # organiza a disposicao dos graficos
 
 for (i in col_box) {
   j <- eval(parse(text = paste0("bd$",i))) # coluna i
@@ -58,10 +57,11 @@ for (i in col_box) {
 
 ## Dispersao
 ```{r}
-col_disp <-  c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitas as densidades
+col_disp <-  c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
 
-par(mfrow=c(2,2))
+par(mfrow=c(2,2)) # organiza a disposicao dos graficos
+
 for (i in col_box) {
   j <- eval(parse(text = paste0("bd$",i))) # coluna i
   for (k in col_resp) {
