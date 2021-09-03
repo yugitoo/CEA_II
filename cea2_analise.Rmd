@@ -60,6 +60,27 @@ plota_disp = function(col_disp, col_resp){
 ```
 
 
+<!-- ```{r} -->
+<!-- cores <- brewer.pal(3, "Set2") -->
+<!-- col_box <- c("idade","n_doencas_associadas","escolaridade","ave_meses") -->
+<!-- layout(matrix(c(1,2,3,4,5,6), ncol=3, byrow=TRUE), heights=c(3, 3)) -->
+
+<!-- par(mai=rep(0.5, 4)) -->
+
+<!--   for (i in col_box) { -->
+<!--     j <- eval(parse(text = paste0("bd$",i))) # coluna i -->
+<!--     adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo")) -->
+<!--     adjbox(j, col=cores, main = paste0(i," geral")) -->
+<!--     plot(density(na.omit(j)), main = paste0(i," geral")) -->
+<!--   } -->
+<!-- layout(matrix(c(1,1,1), ncol=3, byrow=TRUE), heights=c(3)) -->
+<!-- par(mai=c(1,0.5,0.5,0)) -->
+<!-- plot.new() -->
+<!-- legend(x="center", ncol=3,legend=c("0-1 km","1-5 km","outside barrier"), -->
+<!--        fill=c("green","orange","red"), title="Fetch") -->
+<!-- ``` -->
+
+
 ## Analise descritiva
 
 Parametros uteis
@@ -164,4 +185,26 @@ dias_antes
 dias_atual = table(bd$grupo, bd$dirige_dias_atual)
 dias_atual
 
+```
+
+
+
+#### SITUAÇÕES DE DIREÇÃO
+```{r}
+
+chuva = table(bd$grupo, bd$chuva)
+chuva
+
+noite = table(bd$grupo, bd$noite)
+noite
+
+congestionamento = table(bd$grupo, bd$congestionamento)
+congestionamento
+
+
+rush = table(bd$grupo, bd$rush)
+rush
+
+locais = table(bd$grupo, bd$locais)
+locais
 ```
