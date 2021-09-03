@@ -30,6 +30,36 @@ bd$grupo <- factor(bd$grupo)
 head(bd)
 ```
 
+## Funções
+```{r}
+##  Plota boxplot e densidade
+plota_boxplot = function(col_box){
+
+  par(mfrow=c(2,3)) # organiza a disposicao dos graficos
+  for (i in col_box) {
+    j <- eval(parse(text = paste0("bd$",i))) # coluna i
+    adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo"))
+    adjbox(j, col=cores, main = paste0(i," geral"))
+    plot(density(na.omit(j)), main = paste0(i," geral"))
+  }
+}
+
+
+## Plota dispersões
+plota_disp = function(col_disp, col_resp){
+
+  par(mfrow=c(2,2)) # organiza a disposicao dos graficos
+  for (i in col_box) {
+    j <- eval(parse(text = paste0("bd$",i))) # coluna i
+    for (k in col_resp) {
+      l <- eval(parse(text = paste0("bd$",k)))
+      plot(j,l,pch = 16,  main = paste0(i," por ", k), col=bd$grupo)  
+  }
+}
+}
+```
+
+
 ## Analise descritiva
 
 Parametros uteis
@@ -44,14 +74,7 @@ col_names <- names(bd)
 ```{r}
 col_box <- c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitos boxplots
 
-par(mfrow=c(2,3)) # organiza a disposicao dos graficos
-
-for (i in col_box) {
-  j <- eval(parse(text = paste0("bd$",i))) # coluna i
-  adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo"))
-  adjbox(j, col=cores, main = paste0(i," geral"))
-  plot(density(na.omit(j)), main = paste0(i," geral"))
-}
+plota_boxplot(col_box)
 
 ```
 
@@ -60,14 +83,85 @@ for (i in col_box) {
 col_disp <-  c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
 
-par(mfrow=c(2,2)) # organiza a disposicao dos graficos
+plota_disp(col_disp, col_resp)
+```
+###  TEMPO DE REAÇÃO, VELOCIDADE E ERROS
+####  COM DISTRATOR
 
-for (i in col_box) {
-  j <- eval(parse(text = paste0("bd$",i))) # coluna i
-  for (k in col_resp) {
-    l <- eval(parse(text = paste0("bd$",k)))
-    plot(j,l,pch = 16,  main = paste0(i," por ", k), col=bd$grupo)  
-  }
-}
+```{r}
+### Boxplots e Densidades
+col_box <- c("tr_media_com_distrator", "velocidade_com_distrator ") # colunas que serao feitos boxplots
+
+plota_boxplot(col_box)
 ```
 
+
+```{r}
+# Vezes que deixou a via com distrator
+deixou_via_com = table(bd$grupo, bd$deixou_via_com_distrator)
+deixou_via_com  # quantas pessoas cometeram x erros
+
+aggregate(bd$deixou_via_com_distrator, by=list(Category=bd$grupo), FUN=sum) # quantos erros aconteceram
+```
+
+
+```{r}
+# Vezes que perdeu a placa com distrator
+perdeu_placa_com = table(bd$grupo, bd$perdeu_placa_com_distrator)
+perdeu_placa_com # quantas pessoas cometeram x erros
+
+aggregate(bd$perdeu_placa_com_distrator, by=list(Category=bd$grupo), FUN=sum) # quantos erros aconteceram
+```
+
+####  SEM DISTRATOR
+```{r}
+####  SEM DISTRATOR   ########################################
+
+### Boxplots e Densidades
+col_box <- c("tr_media_sem_distrator", "velocidade_sem_distrator ") # colunas que serao feitos boxplots
+
+par(mfrow=c(2,3)) # organiza a disposicao dos graficos
+
+plota_boxplot(col_box)
+
+# Vezes que deixou a via
+deixou_via_sem = table(bd$grupo, bd$deixou_a_via_sem_distrator)
+deixou_via_sem
+aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
+
+# Vezes que perdeu a placa
+perdeu_placa_sem = table(bd$grupo, bd$perdeu_placa_sem_distrator)
+perdeu_placa_sem 
+aggregate(bd$perdeu_placa_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
+
+```
+
+###   HÁBITOS DE DIREÇÃO
+
+#### HORAS DE DIREÇÃO
+```{r}
+
+col_box <- c("dirigia_horas_antes", "dirige_horas_atual") # colunas que serao feitos boxplots
+
+plota_boxplot(col_box)
+```
+
+
+```{r}
+## Dispersao
+col_disp <-  c("dirigia_horas_antes", "dirige_horas_atual") # colunas que serao feitas grafico de dispersao
+col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
+
+plota_disp(col_disp, col_resp)
+```
+
+#### DIAS DE DIREÇÃO
+```{r}
+
+dias_antes = table(bd$grupo, bd$dirigia_dias_antes)
+dias_antes
+
+dias_atual = table(bd$grupo, bd$dirige_dias_atual)
+dias_atual
+
+```
