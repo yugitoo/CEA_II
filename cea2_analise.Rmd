@@ -359,6 +359,7 @@ adjbox(split(bd$"velocidade_sem_distrator", bd$visao_cromatica), col=cores)
 ```{r}
 cp = table(bd$grupo, bd$campimetria_periferica)
 cp
+round(prop.table(cp,1),2)
 
 adjbox(split(bd$"tr_media_com_distrator", bd$campimetria_periferica), col=cores)
 adjbox(split(bd$"tr_media_sem_distrator", bd$campimetria_periferica), col=cores)
@@ -451,6 +452,13 @@ dias_atual
 
 #### Acuidade Visual
 ```{r}
+table(bd$grupo,bd$acuidade_visual_d)
+adjbox(bd$acuidade_visual_d~bd$grupo)
+adjbox(bd$acuidade_visual_e~bd$grupo)
+```
+
+
+```{r}
 ## Dispersao
 col_disp <-  c("acuidade_visual_d", "acuidade_visual_e") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
@@ -496,8 +504,12 @@ via_sem_e
 #### Adaptometria
 ```{r}
 adap = table(bd$grupo, bd$adaptometria)
+prop.table(adap,1)
 adap
+```
 
+
+```{r}
 adjbox(split(bd$"tr_media_com_distrator", bd$adaptometria), col=cores)
 adjbox(split(bd$"tr_media_sem_distrator", bd$adaptometria), col=cores)
 adjbox(split(bd$"velocidade_com_distrator", bd$adaptometria), col=cores)
@@ -510,7 +522,7 @@ adjbox(split(bd$"velocidade_sem_distrator", bd$adaptometria), col=cores)
 #### Variaveis dos membros pareticos e nao pareticos (pressao e adm)
 ```{r}
 col_box <- c("preensao_palmar_paretico",'preensao_palmar_nao_paretico',"adm_flexao_de_ombro_paretico","adm_flexao_de_ombro_nao_paretico",'adm_flexao_de_cotovelo_paretico',"adm_extensao_de_cotovelo_nao_paretico","adm_tornozelo_paretico",'adm_tornozelo_nao_paretico')
-plota_boxplot(col_box)
+plota_boxplot(col_box, col_box)
 plota_disp(col_box,col_resp)
 
 ```
