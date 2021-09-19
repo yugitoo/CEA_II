@@ -236,6 +236,16 @@ adjbox(split(bd$velocidade_sem_distrator, bd$lado_paretico))
 
 #### q4,q5,q7,q8
 ```{r}
+# tabelas com proporcoes por grupo
+round(prop.table(table(bd$q4,bd$grupo),2),2)*100
+round(prop.table(table(bd$q5,bd$grupo),2),2)*100
+round(prop.table(table(bd$q7,bd$grupo),2),2)*100
+round(prop.table(table(bd$q8,bd$grupo),2),2)*100
+round(prop.table(table(bd$q9,bd$grupo),2),2)*100
+```
+
+
+```{r}
 ## Dispersao
 col_disp <-  c("q9") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
@@ -385,6 +395,10 @@ plota_disp(col_disp, col_resp)
 # Boxplots e Densidades
   
 col_box <- c("q1","q2","q3","q6") # colunas que serao feitos boxplots
+tapply(bd$q1,bd$grupo,summary)
+tapply(bd$q2,bd$grupo,summary)
+tapply(bd$q3,bd$grupo,summary)
+tapply(bd$q6,bd$grupo,summary)
 
 plota_boxplot(col_box)
 ```
@@ -398,7 +412,8 @@ plota_disp(col_disp, col_resp)
 
 ```{r}
 col_box <- c("dirigia_horas_antes", "dirige_horas_atual") # colunas que serao feitos boxplots
-
+tapply(bd$dirigia_horas_antes,bd$grupo,summary)
+tapply(bd$dirige_horas_atual,bd$grupo,summary)
 plota_boxplot(col_box)
 ```
 
@@ -412,13 +427,17 @@ plota_disp(col_disp, col_resp)
 
 #### Dirigia Dias
 ```{r}
-
 dias_antes = table(bd$grupo, bd$dirigia_dias_antes)
 dias_antes
 
 dias_atual = table(bd$grupo, bd$dirige_dias_atual)
 dias_atual
+```
 
+
+```{r}
+tapply(bd$dirigia_dias_antes,bd$grupo,summary)
+tapply(bd$dirige_dias_atual,bd$grupo,summary)
 ```
 
 #### Acuidade Visual
