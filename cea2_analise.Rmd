@@ -22,9 +22,9 @@ library("summarytools")
 library(dplyr) # manipular bd
 library(tidyr) # manipular bd
 library(corrplot)
+library(ggplot2)
 
 ```
-
 
 
 ## Leitura dos dados
@@ -38,58 +38,13 @@ bd$q8 <- factor(bd$q8)
 head(bd)
 ```
 
-## Funções
-```{r funcoes}
-plota_boxplot = function(col_box, titulos, densidade, tamanho=c(2,3)){
-
-  par(mfrow=tamanho) # organiza a disposicao dos graficos
-  for (i in 1:length(col_box)) {
-    j <- eval(parse(text = paste0("bd$",col_box[i]))) # coluna i
-    # adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo"))
-        boxplot(j ~ bd$grupo,col=cores, main = paste0(titulos[i]," por grupo"), xlab='')
-
-    boxplot(j, col=cores, main = paste0(titulos[i]," geral"), xlab='')
-    if (densidade==T){
-    plot(density(na.omit(j)), main = paste0(titulos[i]," geral"))}
-  }
-}
-
-## Plota dispersões
-plota_disp = function(col_disp, col_resp, titulos_disp, titulos_resp){
-
-
-  grupo<-factor(bd$grupo)# organiza a disposicao dos graficos
-  for (i in 1:length(col_disp)) {
-    j <- eval(parse(text = paste0("bd$",col_disp[i]))) # coluna i
-    for (k in 1:length(col_resp)) {
-      l <- eval(parse(text = paste0("bd$",col_resp[k])))
-      df<-data.frame(j, l, grupo)
-      geral <- ggplot(df, aes(y = l, x =j)) +
-      geom_point() +
-      labs(x=titulos_disp[i], y=titulos_resp[k]) +
-      theme_bw() +
-      theme(legend.position = "None") 
-      print(geral)
-    
-    fatiado <-ggplot(df, aes(y = l, x =j)) +
-      geom_point(aes(colour = factor(grupo))) +
-      facet_wrap("grupo") +
-      labs(x=titulos_disp[i], y=titulos_resp[k]) +
-      scale_color_brewer(palette = "Set2") +
-      theme_bw() +
-      theme(legend.position = "None")
-    print(fatiado)
-  }
-}
-}
-```
-
 ## Categorizando Variáveis
 ```{r}
 
 # Grupo
 bd$grupo <- as.factor(bd$grupo)
-bd$grupo <- plyr::mapvalues(bd$grupo,  from = c("1", "2", "3"), to = c("ave_dirige", "ave_nao_dirige", "controle"))
+bd$grupo <- plyr::mapvalues(bd$grupo,  from = c("1", "2", "3"), to = c("AVE dirige", "AVE não dirige", "Controle"))
+bd$grupo <- relevel(bd$grupo, "Controle")
 
 # Estado Civil
 bd$estado_civil <- as.factor(bd$estado_civil)
@@ -101,7 +56,7 @@ bd$lado_encefalico_acometido <- plyr::mapvalues(bd$lado_encefalico_acometido,  f
 
 # Lado Parétipo
 bd$lado_paretico <- as.factor(bd$lado_paretico)
-bd$lado_paretico <-plyr::mapvalues(bd$lado_paretico,  from = c("1", "2"), to = c("direito", "esquerdo"))
+bd$lado_paretico <-plyr::mapvalues(bd$lado_paretico,  from = c("1", "2", "3"), to = c("direito", "esquerdo", "misto"))
 
 # Tipo do AVE
 bd$tipo_ave <- as.factor(bd$tipo_ave)
@@ -168,7 +123,12 @@ bd$eiavd <- as.factor(bd$eiavd)
 
 
 ```
+```{r}
+tapply(bd$n_palavras_sentado, bd$grupo, summary)
+tapply(bd$n_palavras_em_pe, bd$grupo, summary)
 
+
+```
 
 ## Analise descritiva
 
@@ -189,397 +149,106 @@ bd %>% descr(., stats = c('mean','sd', 'min', 'q1', 'med', 'q3', 'max'), justify
 
 ```
 
-### Correlações:
-```{r correlacoes}
-cor(bd[sapply(bd, is.numeric)], use = "na.or.complete")
-
-```
-
-
-### Variaveis Categoricas
-#### Deixou via, perdeu placa
 
 ```{r}
+plota_boxplot = function(col_box, titulos, densidade, tamanho=c(2,3)){
+
+  par(mfrow=tamanho) # organiza a disposicao dos graficos
+  for (i in 1:length(col_box)) {
+    j <- eval(parse(text = paste0("bd$",col_box[i]))) # coluna i
+    # adjbox(split(j,bd$grupo), col=cores, main = paste0(i," por grupo"))
+        boxplot(j ~ bd$grupo,col=cores, main = paste0(titulos[i]," por grupo"), xlab='')
+
+    boxplot(j, col=cores, main = paste0(titulos[i]," geral"), xlab='')
+    if (densidade==T){
+    plot(density(na.omit(j)), main = paste0(titulos[i]," geral"))}
+  }
+}
+
+## Plota dispersões
+plota_disp = function(col_disp, col_resp, titulos_disp, titulos_resp){
+
+
+  grupo<-factor(bd$grupo)# organiza a disposicao dos graficos
+  for (i in 1:length(col_disp)) {
+    j <- eval(parse(text = paste0("bd$",col_disp[i]))) # coluna i
+    for (k in 1:length(col_resp)) {
+      l <- eval(parse(text = paste0("bd$",col_resp[k])))
+      df<-data.frame(j, l, grupo)
+      geral <- ggplot(df, aes(y = l, x =j)) +
+      geom_point() +
+      labs(x=titulos_disp[i], y=titulos_resp[k]) +
+      theme_bw() +
+      theme(legend.position = "None") 
+      print(geral)
+    
+    fatiado <-ggplot(df, aes(y = l, x =j)) +
+      geom_point(aes(colour = factor(grupo))) +
+      facet_wrap("grupo") +
+      labs(x=titulos_disp[i], y=titulos_resp[k]) +
+      scale_color_brewer(palette = "Set2") +
+      theme_bw() +
+      theme(legend.position = "None")
+    print(fatiado)
+  }
+}
+}
+```
+
+### Tempos de reação
+```{r}
+col_box<-c("tr_media_com_distrator")
+titulos<-c('Tempo de Reação Com Distrator')
+plota_boxplot(col_box, titulos, densidade = T, tamanho = c(1,3))
+
+col_box<-c("tr_media_sem_distrator")
+titulos<-c('Tempo de Reação Sem Distrator')
+plota_boxplot(col_box, titulos, densidade = T, tamanho = c(1,3))
+```
+
+### Velocidades
+```{r}
+col_box<-c('velocidade_com_distrator', 'velocidade_sem_distrator')
+titulos <- c("Velocidade Com Distrator", "Velocidade Sem Distrator")
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,2))
+
+col_resp<-c('tr_media_com_distrator', 'tr_media_sem_distrator')
+col_disp<-c('velocidade_com_distrator', 'velocidade_sem_distrator')
+titulos_disp <- c("Velocidade Com Distrator", "Velocidade Sem Distrator")
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+```
+
+### Desvio de Pista e Perda De Placa
+```{r}
+# Vezes que deixou a via sem distrator
+deixou_via_sem = table(bd$grupo, bd$deixou_a_via_sem_distrator)
+deixou_via_sem
+chisq.test(bd$grupo, bd$deixou_a_via_sem_distrator)
+
+aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
+
+# Vezes que perdeu a placa sem distrator
+perdeu_placa_sem = table(bd$grupo, bd$perdeu_placa_sem_distrator)
+perdeu_placa_sem 
+chisq.test(bd$grupo, bd$perdeu_placa_sem_distrator)
+aggregate(bd$perdeu_placa_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
+
 # Vezes que deixou a via com distrator
 deixou_via_com = table(bd$grupo, bd$deixou_via_com_distrator)
 deixou_via_com  # quantas pessoas cometeram x erros
+chisq.test(bd$grupo, bd$deixou_via_com_distrator)
 
 aggregate(bd$deixou_via_com_distrator, by=list(Category=bd$grupo), FUN=sum) # quantos erros
 # Vezes que perdeu a placa com distrator
 perdeu_placa_com = table(bd$grupo, bd$perdeu_placa_com_distrator)
 perdeu_placa_com # quantas pessoas cometeram x erros
+chisq.test(bd$grupo, bd$perdeu_placa_com_distrator)
 
-aggregate(bd$perdeu_placa_com_distrator, by=list(Category=bd$grupo), FUN=sum) # quantos erros aconteceram
-```
-
-
-```{r}
-#  SEM DISTRATOR
-
-### Boxplots e Densidades
-col_box <- c("tr_media_sem_distrator", "velocidade_sem_distrator ") # colunas que serao feitos boxplots
-
-par(mfrow=c(2,3)) # organiza a disposicao dos graficos
-
-plota_boxplot(col_box)
-
-# Vezes que deixou a via
-deixou_via_sem = table(bd$grupo, bd$deixou_a_via_sem_distrator)
-deixou_via_sem
-aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
-
-# Vezes que perdeu a placa
-perdeu_placa_sem = table(bd$grupo, bd$perdeu_placa_sem_distrator)
-perdeu_placa_sem 
-aggregate(bd$perdeu_placa_sem_distrator, by=list(Category=bd$grupo), FUN=sum)
-
+aggregate(bd$perdeu_placa_com_distrator, by=list(Category=bd$grupo), FUN=sum) 
 
 ```
 
-#### Lado paretico
-```{r}
-bd$lado_paretico<-factor(bd$lado_paretico)
-adjbox(split(bd$tr_media_com_distrator, bd$lado_paretico))
-adjbox(split(bd$tr_media_sem_distrator, bd$lado_paretico))
-adjbox(split(bd$velocidade_com_distrator, bd$lado_paretico))
-adjbox(split(bd$velocidade_sem_distrator, bd$lado_paretico))
-```
-
-#### Tipo AVE (?)
-```{r}
-
-```
-
-#### q9
-```{r}
-## Dispersao
-col_disp <-  c("q9") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
-plota_disp(col_disp, col_resp)
-```
-
-
-```{r}
-#boxplot(bd$q4,bd$tr_media_com_distrator)
-plot(bd$q4,bd$tr_media_com_distrator)
-plot(bd$q4,bd$tr_media_sem_distrator)
-####  SEM DISTRATOR
-#Vezes q deixou a via com distrator p/ q4: se envolveu em acidentes ou não
-via_sem1<- table(bd$q4,bd$deixou_a_via_sem_distrator)
-via_sem1  
-aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$q4), FUN=sum)
-```
-
-
-```{r}
-#Vezes q deixou a via com distrator p/ q5: se envolveu em acidentes ou não depois do AVE
-via_sem2<- table(bd$q5,bd$deixou_a_via_sem_distrator)
-via_sem2 
-aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$q5), FUN=sum)
-```
-
-
-```{r}
-#Vezes q deixou a via com distrator p/ q7: se tem dificuldade em dirigir 
-via_sem3<- table(bd$q7,bd$grupo)
-via_sem3
-aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$q7), FUN=sum)
-```
-
-
-```{r}
-#Vezes q deixou a via com distrator p/ q8: se dirige menos dps do AVE 
-via_sem4<- table(bd$q8,bd$deixou_a_via_sem_distrator)
-via_sem4 
-aggregate(bd$deixou_a_via_sem_distrator, by=list(Category=bd$q8), FUN=sum)
-
-plot(bd$q4,bd$tr_media_com_distrator)
-plot(bd$q4,bd$tr_media_sem_distrator)
-
-
-```
-
-
-#### chuva   noite  congestionamento  rush Locais que Dirige
-
-```{r}
-
-chuva = table(bd$grupo, bd$chuva)
-chuva
-chisq.test(bd$grupo, bd$chuva)
-
-
-noite = table(bd$grupo, bd$noite)
-noite
-chisq.test(bd$grupo, bd$noite)
-
-congestionamento = table(bd$grupo, bd$congestionamento)
-congestionamento
-chisq.test(bd$grupo, bd$congestionamento)
-
-rush = table(bd$grupo, bd$rush)
-rush
-chisq.test(bd$grupo, bd$rush)
-
-locais = table(bd$grupo, bd$locais)
-locais
-chisq.test(bd$grupo, bd$locais)
-```
-
-#### Estereopsia
-```{r}
-estereopsia = table(bd$grupo, bd$estereopsia)
-estereopsia
-chisq.test(bd$grupo, bd$estereopsia)
-
-adjbox(split(bd$"tr_media_com_distrator",bd$estereopsia), col=cores)
-adjbox(split(bd$"tr_media_sem_distrator",bd$estereopsia), col=cores)
-adjbox(split(bd$"velocidade_com_distrator",bd$estereopsia), col=cores)
-adjbox(split(bd$"velocidade_sem_distrator",bd$estereopsia), col=cores)
-
-
-```
-
-#### Visao Cromatica
-```{r}
-v_c = table(bd$grupo, bd$visao_cromatica)
-v_c
-chisq.test(bd$grupo, bd$visao_cromatica)
-
-adjbox(split(bd$"tr_media_com_distrator",bd$visao_cromatica), col=cores)
-adjbox(split(bd$"tr_media_sem_distrator", bd$visao_cromatica), col=cores)
-adjbox(split(bd$"velocidade_com_distrator", bd$visao_cromatica), col=cores)
-adjbox(split(bd$"velocidade_sem_distrator", bd$visao_cromatica), col=cores)
-
-
-```
-
-
-#### Campimetria Periferica
-```{r}
-cp = table(bd$grupo, bd$campimetria_periferica)
-cp
-round(prop.table(cp,1),2)
-
-adjbox(split(bd$"tr_media_com_distrator", bd$campimetria_periferica), col=cores)
-adjbox(split(bd$"tr_media_sem_distrator", bd$campimetria_periferica), col=cores)
-adjbox(split(bd$"velocidade_com_distrator", bd$campimetria_periferica), col=cores)
-adjbox(split(bd$"velocidade_sem_distrator", bd$campimetria_periferica), col=cores)
-
-```
-
-#### Posicionamento punho paretico e tornozelo paretico
-```{r}
-bd$posicionamente_punho_paretico<-factor(bd$posicionamente_punho_paretico)
-bd$posicionamente_tornozelo_paretico<-factor(bd$posicionamente_tornozelo_paretico)
-
-#plot()
-adjbox(split(bd$tr_media_com_distrator, bd$posicionamente_punho_paretico))
-
-adjbox(split(bd$tr_media_sem_distrator, bd$posicionamente_punho_paretico))
-
-adjbox(split(bd$tr_media_com_distrator, bd$posicionamente_tornozelo_paretico))
-
-adjbox(split(bd$tr_media_sem_distrator, bd$posicionamente_tornozelo_paretico))
-
-adjbox(split(bd$velocidade_com_distrator, bd$posicionamente_punho_paretico))
-
-adjbox(split(bd$velocidade_sem_distrator, bd$posicionamente_punho_paretico))
-
-adjbox(split(bd$velocidade_com_distrator, bd$posicionamente_tornozelo_paretico))
-
-adjbox(split(bd$velocidade_sem_distrator, bd$posicionamente_tornozelo_paretico))
-```
-
-### Variaveis numericas
-#### idade, n doencas, escolareidades, ave meses
-```{r}
-col_box <- c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-```
-
-
-```{r}
-col_disp <-  c("idade","n_doencas_associadas","escolaridade","ave_meses") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-```
-
-#### q1, q2, q3, q6
-
-```{r}
-# Boxplots e Densidades
-  
-col_box <- c("q1","q2","q3","q6") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-```
-
-```{r}
-col_disp <-  c("q1","q2","q3","q6") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
-plota_disp(col_disp, col_resp)
-```
-#### Dirigia Horas
-
-```{r}
-col_box <- c("dirigia_horas_antes", "dirige_horas_atual") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-```
-
-```{r}
-# Dispersao
-col_disp <-  c("dirigia_horas_antes", "dirige_horas_atual") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_desvio_padrao_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-```
-
-#### Dirigia Dias
-```{r}
-
-dias_antes = table(bd$grupo, bd$dirigia_dias_antes)
-dias_antes
-
-dias_atual = table(bd$grupo, bd$dirige_dias_atual)
-dias_atual
-
-```
-
-#### Acuidade Visual
-```{r}
-table(bd$grupo,bd$acuidade_visual_d)
-adjbox(bd$acuidade_visual_d~bd$grupo)
-adjbox(bd$acuidade_visual_e~bd$grupo)
-```
-
-
-```{r}
-## Dispersao
-col_disp <-  c("acuidade_visual_d", "acuidade_visual_e") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-#dispersao
-col_resp <- c("velocidade_com_distrator ","velocidade_com_distrator ") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-
-#perdas de placa distrator
-
-acui_com_d = table(bd$acuidade_visual_d, bd$perdeu_placa_com_distrator)
-acui_com_d
-
-acui_sem_d = table(bd$acuidade_visual_d, bd$perdeu_placa_sem_distrator)
-acui_sem_d
-
-acui_com_e = table(bd$acuidade_visual_e, bd$perdeu_placa_com_distrator)
-acui_com_e
-
-acui_sem_e = table(bd$acuidade_visual_e, bd$perdeu_placa_sem_distrator)
-acui_sem_e
-
-#deixar via
-
-via_com_d = table(bd$acuidade_visual_d, bd$perdeu_placa_com_distrator)
-via_com_d
-via_sem_d = table(bd$acuidade_visual_d, bd$perdeu_placa_sem_distrator)
-via_sem_d
-
-
-via_com_e = table(bd$acuidade_visual_e, bd$perdeu_placa_com_distrator)
-via_com_e
-via_sem_e = table(bd$acuidade_visual_e, bd$perdeu_placa_sem_distrator)
-via_sem_e
-
-```
-
-
-#### Adaptometria
-```{r}
-adap = table(bd$grupo, bd$adaptometria)
-prop.table(adap,1)
-adap
-```
-
-
-```{r}
-adjbox(split(bd$"tr_media_com_distrator", bd$adaptometria), col=cores)
-adjbox(split(bd$"tr_media_sem_distrator", bd$adaptometria), col=cores)
-adjbox(split(bd$"velocidade_com_distrator", bd$adaptometria), col=cores)
-adjbox(split(bd$"velocidade_sem_distrator", bd$adaptometria), col=cores)
-
-
-```
-
-
-#### Variaveis dos membros pareticos e nao pareticos (pressao e adm)
-```{r}
-col_box <- c("preensao_palmar_paretico",'preensao_palmar_nao_paretico',"adm_flexao_de_ombro_paretico","adm_flexao_de_ombro_nao_paretico",'adm_flexao_de_cotovelo_paretico',"adm_extensao_de_cotovelo_nao_paretico","adm_tornozelo_paretico",'adm_tornozelo_nao_paretico')
-plota_boxplot(col_box, col_box)
-plota_disp(col_box,col_resp)
-
-```
-
-#### TUG, numero palavras
-```{r}
-
-col_box <- c("tug_simples_segundo", "tug_dupla_tarefa_segundos", "n_palavras_sentado", "n_palavras_em_pe") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("tug_simples_segundo", "tug_dupla_tarefa_segundos", "n_palavras_sentado", "n_palavras_em_pe") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-## Dispersao
-col_disp <-  c("tug_simples_segundo", "tug_dupla_tarefa_segundos", "n_palavras_sentado", "n_palavras_em_pe") # colunas que serao feitas grafico de dispersao
-col_resp <- c("velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
-
-
-#### Adm Tornozelo Direito
-
-```{r}
-
-col_box <- c("adm_tornozelo_d") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("adm_tornozelo_d") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
-
-#### Meem
-
-``` {r}
-
-col_box <- c("meem") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("meem") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
 
 #### Atenção Automática, Velocidade De Processamento, Atenção Controlada, Atenção Executiva
 
@@ -587,21 +256,19 @@ plota_disp(col_disp, col_resp)
 
 ## Tempos
 
-col_box <- c("fdt_atencao_automatica_tempo", "velocidade_processamento_tempo", "atencao_controlada_tempo", "atencao_executiva_tempo") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
+col_box <- c("fdt_atencao_automatica_tempo", "velocidade_processamento_tempo", "atencao_controlada_tempo", "atencao_executiva_tempo") 
+titulos <- c("Atenção Automática (s)", "Velocidade De Processamento (s)", 
+             "Atenção Controlada (s)", "Atenção Executiva (s)")
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,2))
 
 ## Dispersao
 col_disp <-  c("fdt_atencao_automatica_tempo", "velocidade_processamento_tempo", "atencao_controlada_tempo", "atencao_executiva_tempo") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
+titulos_disp <- c("Atenção Automática (s)", "Velocidade De Processamento (s)", 
+             "Atenção Controlada (s)", "Atenção Executiva (s)")
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
 
-plota_disp(col_disp, col_resp)
-
-## Dispersao
-col_disp <-  c("fdt_atencao_automatica_tempo", "velocidade_processamento_tempo", "atencao_controlada_tempo", "atencao_executiva_tempo") # colunas que serao feitas grafico de dispersao
-col_resp <- c("velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
 
 ## ERROS:
 
@@ -625,49 +292,12 @@ aggregate(bd$atencao_executiva_erros_total, by=list(Category=bd$grupo), FUN=sum)
 
 ```
 
-#### Inibição Total
-``` {r}
-
-col_box <- c("inibição_total") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("inibição_total") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
-
-#### Flexibilidade
-``` {r}
-
-col_box <- c("flexibilidade_tempo") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("flexibilidade_tempo") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
-
-#### Trail
-
-``` {r}
+### Trail A
+```{r}
 ## TEMPO
 col_box <- c("trail_a_tempo", "trail_b_tempo") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("trail_a_tempo", "trail_b_tempo") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
+titulos <- c("Trail A (segundos)", "Trail B (segundos)")
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,2))
 
 #ERROS
 
@@ -675,59 +305,286 @@ trail_a_erros = table(bd$grupo, bd$trail_a_erros)
 trail_a_erros
 aggregate(bd$trail_a_erros, by=list(Category=bd$grupo), FUN=sum)
 
-
 trail_b_erros = table(bd$grupo, bd$trail_b_erros)
 trail_b_erros
 aggregate(bd$trail_b_erros, by=list(Category=bd$grupo), FUN=sum)
 
-## Dispersao
-col_disp <-  c("trail_a_erros", "trail_b_erros") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-```
-
-#### Frey
-``` {r}
-
-col_box <- c("frey_copia_tempo", "frey_evocacao3_tempo", "frey_evocacao30_tempo") # colunas que serao feitos boxplots
-
-plota_boxplot(col_box)
-
-## Dispersao
-col_disp <-  c("frey_copia_tempo", "frey_evocacao3_tempo", "frey_evocacao30_tempo") # colunas que serao feitas grafico de dispersao
-col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
-
-plota_disp(col_disp, col_resp)
-
-```
-
-
-#### Tempo De Reação, Velocidade E Erros Com Distrator
-
-```{r}
-### Boxplots e Densidades
-col_box <- c("tr_media_com_distrator", "velocidade_com_distrator ") # colunas que serao feitos boxplots
-col_box <- c("tr_media_sem_distrator", "velocidade_sem_distrator ") # colunas que serao feitos boxplots
-plota_boxplot(col_box)
-```
-```{r}
-col_box<-c("tr_media_com_distrator")
-titulos<-c('Tempo de Reação Com Distrator')
-plota_boxplot(col_box, titulos, densidade = T, tamanho = c(1,3))
-
-col_box<-c("tr_media_sem_distrator")
-titulos<-c('Tempo de Reação Sem Distrator')
-plota_boxplot(col_box, titulos, densidade = T, tamanho = c(1,3))
-```
-
-
-```{r}
-col_resp<-c('tr_media_com_distrator', 'tr_media_sem_distrator')
-col_disp<-c('velocidade_com_distrator', 'velocidade_sem_distrator')
-titulos_disp <- c("Velocidade Com Distrator", "Velocidade Sem Distrator")
+## Dispersão
+col_disp <-  c("trail_a_tempo", "trail_b_tempo") # colunas que serao feitas grafico de dispersao
+col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
+titulos_disp <- c("Trail A (segundos)", "Trail B (segundos)")
 titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
-dispersoes = plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+
+```
+
+## Meses De AVE
+```{r}
+col_box <- c("ave_meses") 
+titulos <- c("Meses Desde AVE")
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,2))
+
+#Lado Parético
+lado = table(bd$grupo, bd$lado_paretico)
+lado
+
+boxplot(bd$tr_media_sem_distrator~bd$lado_paretico,col=cores, main = "Tempo de Reação Sem Distrator", xlab='')
+
+boxplot(bd$tr_media_com_distrator~bd$lado_paretico,col=cores, main = "Tempo de Reação Com Distrator", xlab='')
+
+#Locais:
+locais = table(bd$grupo, bd$locais)
+locais
+chisq.test(bd$grupo, bd$locais)
+
+```
+
+### Inibição e Flexibilidade
+```{r}
+col_box <- c("inibição_total", "flexibilidade_tempo") 
+titulos = c('Inibição', 'Flexibilidade')
+
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,2))
+
+col_disp<-c("inibição_total", "flexibilidade_tempo")
+col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") # colunas com variaveis resposta
+titulos_disp <- c('Inibição', 'Flexibilidade')
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+
+```
+
+### Figura Complexa de Rey
+```{r}
+col_box <- c("frey_copia_tempo") 
+titulos <- c("Figura Complexa de Rey")
+plota_boxplot(col_box, titulos, densidade=F)
+
+col_disp<-c("frey_copia_tempo")
+col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator")
+titulos_disp <- c("Figura Complexa de Rey")
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+
+```
+
+#### Adm Tornozelo Direito
+
+```{r}
+
+col_box <- c("adm_tornozelo_d") # colunas que serao feitos boxplots
+titulos <- c('Tornozelo Direito')
+plota_boxplot(col_box)
+
+## Dispersao
+col_disp <-  c("adm_tornozelo_d") 
+col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator") 
+titulos_disp <- c("Tornozelo Direito")
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+
+```
+
+#### Correlações
+```{r}
+# 'lado_paretico', 'locais',
 ```
 
 
+```{r}
+finais<-bd [, c('grupo','ave_meses', 'tug_simples_segundo',
+              'tug_dupla_tarefa_segundos', 'n_palavras_sentado', 'n_palavras_em_pe', 
+              'adm_tornozelo_d', 'fdt_atencao_automatica_tempo', 'velocidade_processamento_tempo'
+              , 'atencao_controlada_tempo', 'atencao_executiva_tempo', 
+              'atencao_automatica_erros_total', 
+              'velocidade_processamento_erros_total', 
+              'atencao_controlada_erros_total', 
+              'atencao_executiva_erros_total', 
+              'inibição_total', 'flexibilidade_tempo', 
+              'trail_a_erros', 'trail_b_erros', 'trail_a_tempo', 'trail_b_tempo', 
+              'frey_copia_tempo', 'tr_media_com_distrator', 'tr_media_sem_distrator', 
+              'perdeu_placa_com_distrator', 'perdeu_placa_sem_distrator',
+              'deixou_via_com_distrator', 'deixou_a_via_sem_distrator', 
+              'velocidade_com_distrator', 'velocidade_sem_distrator', 'escolaridade' )]
+
+par(mfrow=c(1, 1))
+correlacoes = cor(finais[, c(-1)], use = "na.or.complete")
+corrplot(correlacoes, method = 'color', order = 'alphabet', tl.pos='n') 
+
+# Correlações do grupo de AVE DIRIGE:
+cor_dirige = finais[finais[, c('grupo')]=='AVE dirige', c(-1)]
+correlacoes_dirige = cor(cor_dirige, use = "na.or.complete")
+corrplot(correlacoes_dirige, method = 'color', order = 'alphabet', tl.pos='n')
+
+# Correlações do grupo de AVE NÃO DIRIGE:
+cor_n_dirige = finais[finais[, c('grupo')]=='AVE não dirige', c(-1)]
+correlacoes_n_dirige = cor(cor_n_dirige, use = "na.or.complete")
+corrplot(correlacoes_n_dirige, method = 'color', order = 'alphabet', tl.pos='n')
+
+# Correlações do grupo de Controle:
+cor_controle = finais[finais[, c('grupo')]=='Controle', c(-1, -2)]
+correlacoes_controle = cor(cor_controle, use = "na.or.complete")
+corrplot(correlacoes_controle, method = 'color', order = 'alphabet', tl.pos='n')
+
+
+
+
+```
+
+#### TUG
+```{r}
+## Dispersao
+
+# colunas com variaveis resposta
+
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+col_disp <-  c("tug_simples_segundo", "tug_dupla_tarefa_segundos", "n_palavras_sentado", "n_palavras_em_pe") # colunas que serao feitas grafico de dispersao
+col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator")  # colunas com variaveis resposta
+titulos_disp <- c("TUG Simples (s)", "TUG Dupla (s)", 
+                  "Nº palavras sentado(s)", "Nº palavras em pé(s)")
+titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
+plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
+
+## Dispersao
+col_disp <-  c("tug_simples_segundo", "tug_dupla_tarefa_segundos", "n_palavras_sentado", "n_palavras_em_pe") # colunas que serao feitas grafico de dispersao
+col_resp <- c("velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
+ 
+```
+#### Escolaridade
+```{r}
+
+mod_escol1 <-lm(tr_media_com_distrator ~ escolaridade, data=bd)
+summary(mod_escol1)
+
+mod_escol2 <-lm(tr_media_sem_distrator ~ escolaridade, data=bd)
+summary(mod_escol2)
+
+
+#significativo
+
+```
+
+#### Tempo desde AVE
+```{r}
+
+mod_ave_meses1 <-lm(tr_media_com_distrator ~ ave_meses, data=bd)
+summary(mod_ave_meses1)
+
+mod_ave_meses2 <-lm(tr_media_sem_distrator ~ ave_meses, data=bd)
+summary(mod_ave_meses2)
+
+#não significativo
+
+```
+
+
+
+#### Tempo que dirigia antes do AVE
+```{r}
+
+mod_dirigia1 <-lm(tr_media_com_distrator ~ q1, data=bd)
+summary(mod_dirigia1)
+
+mod_dirigia2 <-lm(tr_media_sem_distrator ~ q1, data=bd)
+summary(mod_dirigia2)
+
+#significativo
+
+```
+#### Lado parétipo
+```{r}
+
+mod_lado_paretico1 <-lm(tr_media_com_distrator ~ lado_paretico, data=bd)
+summary(mod_lado_paretico1)
+
+mod_lado_paretico2 <-lm(tr_media_sem_distrator ~ lado_paretico, data=bd)
+summary(mod_lado_paretico2)
+
+#significativo
+
+```
+#### Locais em que se sente confortável para dirigir
+```{r}
+
+mod_locais1 <-lm(tr_media_com_distrator ~ locais, data=bd)
+summary(mod_locais1)
+
+mod_locais2 <-lm(tr_media_sem_distrator ~ locais, data=bd)
+summary(mod_locais2)
+
+#significativo: locaisqq lugar/ rodovia
+
+```
+#### TUG SIMPLES
+```{r}
+
+mod_tug_simples_segundo1 <-lm(tr_media_com_distrator ~ tug_simples_segundo, data=bd)
+summary(mod_tug_simples_segundo1)
+
+mod_tug_simples_segundo2 <-lm(tr_media_sem_distrator ~ tug_simples_segundo, data=bd)
+summary(mod_tug_simples_segundo2)
+
+#significativo
+
+```
+#### TUG DUPLA TAREFA
+```{r}
+
+mod_tug_dupla_tarefa_segundos1 <-lm(tr_media_com_distrator ~ tug_dupla_tarefa_segundos, data=bd)
+summary(mod_tug_dupla_tarefa_segundos1)
+
+mod_tug_dupla_tarefa_segundos2 <-lm(tr_media_sem_distrator ~ tug_dupla_tarefa_segundos, data=bd)
+summary(mod_tug_dupla_tarefa_segundos2)
+
+#significativo
+
+```
+#### Nº de palavras sentado
+```{r}
+
+mod_n_palavras_sentado1 <-lm(tr_media_com_distrator ~ n_palavras_sentado, data=bd)
+summary(mod_n_palavras_sentado1)
+
+mod_n_palavras_sentado2 <-lm(tr_media_sem_distrator ~ n_palavras_sentado, data=bd)
+summary(mod_n_palavras_sentado2)
+
+#significativo
+
+```
+#### Nº de palavras em pé
+```{r}
+
+mod_n_palavras_em_pe1 <-lm(tr_media_com_distrator ~ n_palavras_em_pe, data=bd)
+summary(mod_n_palavras_em_pe1)
+
+mod_n_palavras_em_pe2 <-lm(tr_media_sem_distrator ~ n_palavras_em_pe, data=bd)
+summary(mod_n_palavras_em_pe2)
+
+#significativo
+
+```
+#### ADM Tornozelo direito
+```{r}
+
+mod_adm_tornozelo_d1 <-lm(tr_media_com_distrator ~ adm_tornozelo_d, data=bd)
+summary(mod_adm_tornozelo_d1)
+
+mod_adm_tornozelo_d2 <-lm(tr_media_sem_distrator ~ adm_tornozelo_d, data=bd)
+summary(mod_adm_tornozelo_d2)
+
+#não significativo
+
+```
+#### Atenção automática
+```{r}
+
+mod_fdt_atencao_automatica_tempo1 <-lm(tr_media_com_distrator ~ fdt_atencao_automatica_tempo, data=bd)
+summary(mod_fdt_atencao_automatica_tempo1)
+
+mod_fdt_atencao_automatica_tempo2 <-lm(tr_media_sem_distrator ~ fdt_atencao_automatica_tempo, data=bd)
+summary(mod_fdt_atencao_automatica_tempo2)
+
+#significativo
+
+```
