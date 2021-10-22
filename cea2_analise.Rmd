@@ -287,24 +287,28 @@ plot(bd$q4,bd$tr_media_sem_distrator)
 ```{r}
 
 chuva = table(bd$grupo, bd$chuva)
-chuva
+round(prop.table(chuva,1),2)*100
+
 chisq.test(bd$grupo, bd$chuva)
 
 
 noite = table(bd$grupo, bd$noite)
-noite
+round(prop.table(noite,1),2)*100
+
 chisq.test(bd$grupo, bd$noite)
 
 congestionamento = table(bd$grupo, bd$congestionamento)
-congestionamento
+round(prop.table(congestionamento,1),2)*100
+
 chisq.test(bd$grupo, bd$congestionamento)
 
 rush = table(bd$grupo, bd$rush)
-rush
+round(prop.table(rush,1),2)*100
+
 chisq.test(bd$grupo, bd$rush)
 
 locais = table(bd$grupo, bd$locais)
-locais
+round(prop.table(locais,1),2)*100
 chisq.test(bd$grupo, bd$locais)
 ```
 
@@ -547,11 +551,18 @@ plota_disp(col_disp, col_resp)
 #### Meem
 
 ``` {r}
-
 col_box <- c("meem") # colunas que serao feitos boxplots
 
 plota_boxplot(col_box)
+```
 
+
+``` {r}
+tapply(bd$meem,bd$grupo,summary)
+```
+
+
+``` {r}
 ## Dispersao
 col_disp <-  c("meem") # colunas que serao feitas grafico de dispersao
 col_resp <- c("tr_media_com_distrator","tr_media_sem_distrator", "velocidade_com_distrator","velocidade_sem_distrator") # colunas com variaveis resposta
