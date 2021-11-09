@@ -712,7 +712,7 @@ summary(mod_velocidade_sem_distrator2)
 ```
 
 
-#"velocidade_processamento_tempo"
+#### "velocidade_processamento_tempo"
 ```{r}
 vel_proc_ctempo<-lm(bd$tr_media_com_distrator ~ bd$velocidade_processamento_tempo, data=bd)
 vel_proc_stempo<-lm(bd$tr_media_sem_distrator ~ bd$velocidade_processamento_tempo, data=bd)
@@ -721,7 +721,7 @@ summary(vel_proc_stempo)
 #significante
 ```
 
-#"atencao_controlada_tempo"
+#### "atencao_controlada_tempo"
 ```{r}
 at_ctrl_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_tempo)
 summary(at_ctrl_ctempo)
@@ -730,7 +730,7 @@ summary(at_ctrl_stempo)
 #significante
 ```
 
-#"atencao_executiva_tempo"
+#### "atencao_executiva_tempo"
 ```{r}
 at_exe_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_tempo)
 summary(at_exe_ctempo)
@@ -739,7 +739,7 @@ summary(at_exe_stempo)
 #significante
 ```
 
-#atencao_automatica_erros_total
+#### atencao_automatica_erros_total
 ```{r}
 at_auto_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_automatica_erros_total)
 summary(at_auto_cerro)
@@ -748,7 +748,7 @@ summary(at_auto_serro)
 #n signif
 ```
 
-#velocidade_processamento_erros_total
+#### velocidade_processamento_erros_total
 ```{r}
 vel_proc_cerro<-lm(bd$tr_media_com_distrator~bd$velocidade_processamento_erros_total)
 summary(vel_proc_cerro)
@@ -756,7 +756,7 @@ vel_proc_serro<-lm(bd$tr_media_sem_distrator~bd$velocidade_processamento_erros_t
 summary(vel_proc_serro)
 #n signif
 ```
-#atencao_controlada_erros_total
+#### atencao_controlada_erros_total
 ```{r}
 at_ctrl_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_erros_total)
 summary(at_ctrl_cerro)
@@ -765,7 +765,7 @@ summary(at_ctrl_serro)
 #n signif
 ```
 
-#atencao_executiva_erros_total
+#### atencao_executiva_erros_total
 ```{r}
 at_exe_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_erros_total)
 summary(at_exe_cerro)
@@ -774,7 +774,7 @@ summary(at_exe_serro)
 #nao signif
 ```
 
-#inibição_total
+#### inibição_total
 ```{r}
 ini_c<-lm(bd$tr_media_com_distrator~bd$inibição_total)
 summary(ini_c)
@@ -782,16 +782,17 @@ ini_s<-lm(bd$tr_media_sem_distrator~bd$inibição_total)
 summary(ini_s)
 #significante
 ```
-#flexibilidade_tempo
+#### flexibilidade_tempo
 ```{r}
 flex_c<-lm(bd$tr_media_com_distrator~bd$flexibilidade_tempo)
-summary(flex_c)
+# summary(flex_c)
 flex_s<-lm(bd$tr_media_sem_distrator~bd$flexibilidade_tempo)
-summary(flex_s)
+# summary(flex_s)
 #significante
+anova(flex_c)
 ```
 
-#trail_a_erros
+#### trail_a_erros
 ```{r}
 mod_trail_a_erros1 <-lm(tr_media_com_distrator ~ trail_a_erros, data=bd)
 summary(mod_trail_a_erros1)
@@ -799,4 +800,161 @@ summary(mod_trail_a_erros1)
 mod_trail_a_erros2 <-lm(tr_media_sem_distrator ~ trail_a_erros, data=bd)
 summary(mod_trail_a_erros2)
 #nao significante
+```
+
+#### Anova
+```{r}
+flex_c<-lm(bd$tr_media_com_distrator~bd$flexibilidade_tempo)
+flex_s<-lm(bd$tr_media_sem_distrator~bd$flexibilidade_tempo)
+
+anova(lm(bd$tr_media_com_distrator ~ bd$flexibilidade_tempo + bd$grupo),flex_c)
+anova(lm(bd$tr_media_sem_distrator ~ bd$flexibilidade_tempo + bd$grupo),flex_s)
+```
+
+
+```{r}
+mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$grupo)
+anova(mod_1,ini_c)
+mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$grupo)
+anova(mod_1,ini_s)
+
+```
+
+```{r}
+mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo)
+mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$grupo)
+anova(mod_2,mod_1)
+mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo)
+mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$grupo)
+anova(mod_2,mod_1)
+
+```
+
+```{r}
+mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo)
+mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$grupo)
+anova(mod_2,mod_1)
+
+mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo)
+mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$grupo)
+anova(mod_2,mod_1)
+```
+
+```{r}
+mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo)
+mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$grupo)
+anova(mod_2,mod_1)
+
+mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo)
+mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$grupo)
+anova(mod_2,mod_1)
+```
+
+
+
+```{r}
+mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$trail_b_tempo)
+mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo+ bd$trail_b_tempo + bd$grupo)
+anova(mod_2,mod_1)
+mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$trail_b_tempo)
+mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo+ bd$trail_b_tempo + bd$grupo)
+anova(mod_2,mod_1)
+
+```
+
+
+```{r}
+library(leaps)
+```
+
+
+```{r}
+variaveis_sem<-c('tr_media_sem_distrator', 'escolaridade'
+                 ,'locais', 
+                 'tug_simples_segundo', 'tug_dupla_tarefa_segundos', 'n_palavras_em_pe', 'trail_a_tempo', 'trail_b_tempo', 'frey_copia_tempo', 
+                'velocidade_sem_distrator', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo' 
+                 )
+```
+
+```{r}
+## TESTE DE MODELO:  sem DISTRATOR
+# stepwise forward regression
+mod_sem <- regsubsets(tr_media_sem_distrator~., bd[, variaveis_sem], nvmax=length(variaveis_sem),
+ force.in=c('trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo' ), intercept=TRUE,
+ method="forward")
+
+# summary(mod_sem)
+resultado = summary(mod_sem)
+
+(num_coef <- which.min(resultado$bic) )# numero de coeficientes escolhidos
+(fw_coef <- coef(mod_sem, num_coef))
+```
+
+
+```{r}
+fit_all_sum = resultado
+
+par(mfrow = c(2, 2))
+plot(fit_all_sum$rss, xlab = "Number of Variables", ylab = "RSS", type = "b")
+
+plot(fit_all_sum$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "b")
+best_adj_r2 = which.max(fit_all_sum$adjr2)
+points(best_adj_r2, fit_all_sum$adjr2[best_adj_r2],
+       col = "red",cex = 2, pch = 20)
+
+plot(fit_all_sum$cp, xlab = "Number of Variables", ylab = "Cp", type = 'b')
+best_cp = which.min(fit_all_sum$cp)
+points(best_cp, fit_all_sum$cp[best_cp], 
+       col = "red", cex = 2, pch = 20)
+
+plot(fit_all_sum$bic, xlab = "Number of Variables", ylab = "BIC", type = 'b')
+best_bic = which.min(fit_all_sum$bic)
+points(best_bic, fit_all_sum$bic[best_bic], 
+       col = "red", cex = 2, pch = 20)
+```
+
+```{r}
+mod_1 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$escolaridade+bd$velocidade_sem_distrator, data = bd)
+
+mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$escolaridade+bd$velocidade_sem_distrator+bd$grupo, data = bd)
+
+anova(mod_2,mod_1)
+```
+
+### Boostrap
+```{r}
+set.seed(112358)
+n <-length(bd$tr_media_com_distrator)  #número de observações na amostra
+B <- 1000 #número de amostras de bootstrap 
+variable <-1:length(bd$tr_media_com_distrator)
+
+amostra_bootstrap <- matrix(sample(variable, size=n*B, replace=TRUE), nrow=n, ncol = B)
+dim(amostra_bootstrap)
+
+amostra_bootstrap<-as.data.frame(amostra_bootstrap)
+#View(amostra_bootstrap)
+
+valores_p <-c()
+```
+
+```{r}
+for (i in 1:1000){
+  #com grupo
+  mod1<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
+  
+  #sem grupo:
+    mod2<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo') ])
+    
+    teste<-anova(mod1, mod2)
+  valores_p<-c(valores_p, teste$`Pr(>F)`[2])
+}
+```
+
+
+```{r}
+####quantidade de valores_p menores que 0.05
+length(valores_p[valores_p<0.05])
+
+####quantidade de valores_p menores que 0.1
+length(valores_p[valores_p<0.1])
 ```
