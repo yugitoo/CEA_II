@@ -54,7 +54,7 @@ bd$estado_civil <-plyr::mapvalues(bd$estado_civil,  from = c("1", "2", "3", "4")
 bd$lado_encefalico_acometido <- as.factor(bd$lado_encefalico_acometido)
 bd$lado_encefalico_acometido <- plyr::mapvalues(bd$lado_encefalico_acometido,  from = c("1", "2", "3"), to = c("direito", "esquerdo", "bilateral"))
 
-# Lado Parétipo
+# Lado Parético
 bd$lado_paretico <- as.factor(bd$lado_paretico)
 bd$lado_paretico <-plyr::mapvalues(bd$lado_paretico,  from = c("1", "2", "3"), to = c("direito", "esquerdo", "misto"))
 
@@ -492,15 +492,16 @@ summary(mod_dirigia2)
 #nao significativo
 
 ```
-#### Lado parétipo
+#### Lado parético
 ```{r}
 
-mod_lado_paretico1 <-lm(tr_media_com_distrator ~ lado_paretico, data=bd)
+mod_lado_paretico1 <-lm(tr_media_com_distrator ~ lado_paretico + grupo, data=bd)
 summary(mod_lado_paretico1)
 
 mod_lado_paretico2 <-lm(tr_media_sem_distrator ~ lado_paretico, data=bd)
 summary(mod_lado_paretico2)
 
+anova(mod_lado_paretico1)
 #significativo
 
 ```
@@ -861,16 +862,17 @@ mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade
 anova(mod_2,mod_1)
 
 ```
-
-
+### step forward
+#### sem distrator
 ```{r}
 library(leaps)
 ```
 
 
 ```{r}
-variaveis_sem<-c('tr_media_sem_distrator', 'escolaridade'
-                 ,'locais', 
+# sem escolariade
+variaveis_sem<-c('tr_media_sem_distrator',
+                 'locais', 
                  'tug_simples_segundo', 'tug_dupla_tarefa_segundos', 'n_palavras_em_pe', 'trail_a_tempo', 'trail_b_tempo', 'frey_copia_tempo', 
                 'velocidade_sem_distrator', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo' 
                  )
@@ -888,6 +890,7 @@ resultado = summary(mod_sem)
 
 (num_coef <- which.min(resultado$bic) )# numero de coeficientes escolhidos
 (fw_coef <- coef(mod_sem, num_coef))
+# names(fw_coef)
 ```
 
 
@@ -914,9 +917,10 @@ points(best_bic, fit_all_sum$bic[best_bic],
 ```
 
 ```{r}
-mod_1 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$escolaridade+bd$velocidade_sem_distrator, data = bd)
+# sem distrator
+mod_1 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$velocidade_sem_distrator, data = bd)
 
-mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$escolaridade+bd$velocidade_sem_distrator+bd$grupo, data = bd)
+mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$velocidade_sem_distrator+bd$grupo, data = bd)
 
 anova(mod_2,mod_1)
 ```
@@ -957,4 +961,94 @@ length(valores_p[valores_p<0.05])
 
 ####quantidade de valores_p menores que 0.1
 length(valores_p[valores_p<0.1])
+```
+
+#### sem distrator
+
+
+```{r}
+set.seed(112358)
+n <-length(bd$tr_media_sem_distrator)  #número de observações na amostra
+B <- 1000 #número de amostras de bootstrap 
+variable <-1:length(bd$tr_media_sem_distrator)
+
+amostra_bootstrap <- matrix(sample(variable, size=n*B, replace=TRUE), nrow=n, ncol = B)
+dim(amostra_bootstrap)
+
+amostra_bootstrap<-as.data.frame(amostra_bootstrap)
+#View(amostra_bootstrap)
+
+valores_p <-c()
+```
+
+```{r}
+valores_p <-c()
+for (i in 1:1000){
+  #com grupo
+  mod1<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo',"n_palavras_em_pe",'grupo') ])
+  
+  #sem grupo:
+    mod2<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo',"n_palavras_em_pe") ])
+    
+    teste<-anova(mod1, mod2)
+  valores_p<-c(valores_p, teste$`Pr(>F)`[2])
+}
+```
+
+
+```{r}
+####quantidade de valores_p menores que 0.05
+length(valores_p[valores_p<0.05])
+
+####quantidade de valores_p menores que 0.1
+length(valores_p[valores_p<0.1])
+```
+
+
+### LSD
+#### sem distrator 5 principais
+```{r}
+## LSD:
+
+library(agricolae)
+mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$grupo, data = bd)
+# summary(mod_2)
+out <- LSD.test(mod_2, 'bd$grupo', group = TRUE, p.adj="none")
+out
+out$groups <- out$groups %>% arrange(factor(row.names(out$groups),levels = c("Controle","AVE dirige", "AVE não dirige"))) # para ordernar a ordem em que os grupos aparecem no grafico
+plot(out, variation = 'SD', main= "Teste LSD - Grupos e Desvio Padrão")
+#controle é diferente 
+```
+
+#### sem distrator 5 principais
+```{r}
+## LSD:
+
+library(agricolae)
+mod_2 <- lm(bd$tr_media_sem_distrator~bd$inibição_total+bd$grupo, data = bd)
+summary(mod_2)
+out <- LSD.test(mod_2, 'bd$grupo', group = TRUE, p.adj="none")
+out
+plot(out, variation = 'SD')
+#controle é diferente 
+```
+
+
+### Com distrator
+```{r}
+## Modelo escolhido, mais grupo:
+
+mod_com_fim <- lm(tr_media_com_distrator~., bd[, c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
+summary(mod_com_fim)
+```
+
+```{r}
+## LSD:
+
+#install.packages('agricolae')
+library(agricolae)
+out <- LSD.test(mod_com_fim, 'grupo', group = TRUE, p.adj="none")
+out$means
+plot(out, variation = 'SD')
+#controle é diferente 
 ```
