@@ -374,7 +374,7 @@ plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
 
 col_box <- c("adm_tornozelo_d") # colunas que serao feitos boxplots
 titulos <- c('ADM Tornozelo Direito')
-plota_boxplot(col_box, titulos)
+plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,1), laby = "Amplitude (graus)")
 
 ## Dispersao
 col_disp <-  c("adm_tornozelo_d") 
