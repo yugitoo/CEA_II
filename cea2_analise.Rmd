@@ -23,7 +23,13 @@ library(dplyr) # manipular bd
 library(tidyr) # manipular bd
 library(corrplot)
 library(ggplot2)
+```
 
+
+```{r bibliotecas}
+library(tidyverse)
+library(caret)
+library(leaps)
 ```
 
 
@@ -54,7 +60,7 @@ bd$estado_civil <-plyr::mapvalues(bd$estado_civil,  from = c("1", "2", "3", "4")
 bd$lado_encefalico_acometido <- as.factor(bd$lado_encefalico_acometido)
 bd$lado_encefalico_acometido <- plyr::mapvalues(bd$lado_encefalico_acometido,  from = c("1", "2", "3"), to = c("direito", "esquerdo", "bilateral"))
 
-# Lado Parético
+# Lado Parétipo
 bd$lado_paretico <- as.factor(bd$lado_paretico)
 bd$lado_paretico <-plyr::mapvalues(bd$lado_paretico,  from = c("1", "2", "3"), to = c("direito", "esquerdo", "misto"))
 
@@ -123,10 +129,13 @@ bd$eiavd <- as.factor(bd$eiavd)
 
 
 ```
-```{r}
-tapply(bd$n_palavras_sentado, bd$grupo, summary)
-tapply(bd$n_palavras_em_pe, bd$grupo, summary)
 
+```{r}
+medidas_por_grupo <- stby(data= bd, INDICES = bd$grupo, FUN = descr, stats = c('mean','sd', 'min', 'q1', 'med', 'q3', 'max'), transpose = TRUE)
+medidas_por_grupo
+
+medidas_por_grupo_cont <- stby(data= bd, INDICES = bd$grupo, FUN = descr, stats = c('n.valid'), transpose = TRUE)
+medidas_por_grupo_cont
 
 ```
 
@@ -164,6 +173,7 @@ plota_boxplot = function(col_box, titulos, densidade=T, tamanho=c(2,3), laby = "
     plot(density(na.omit(j)), main = paste0(titulos[i]," geral"),ylab = "Densidade")}
   }
 }
+
 
 ## Plota dispersões
 plota_disp = function(col_disp, col_resp, titulos_disp, titulos_resp){
@@ -292,6 +302,7 @@ aggregate(bd$atencao_executiva_erros_total, by=list(Category=bd$grupo), FUN=sum)
 
 ```
 
+
 ### Trail A
 ```{r}
 ## TEMPO
@@ -368,6 +379,7 @@ plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
 
 ```
 
+
 #### Adm Tornozelo Direito
 
 ```{r}
@@ -385,6 +397,7 @@ titulos_resp <- c("Tempo Médio Com Distrator", "Tempo Médio Sem Distrator")
 plota_disp(col_disp, col_resp, titulos_disp, titulos_resp)
 
 ```
+
 
 #### Correlações
 ```{r}
@@ -432,6 +445,7 @@ corrplot(correlacoes_controle, method = 'color', order = 'alphabet', tl.pos='n')
 
 ```
 
+
 #### TUG
 ```{r}
 ## Dispersao
@@ -460,13 +474,15 @@ titulos <- c("Nº palavras sentado", "Nº palavras em pé")
 plota_boxplot(col_box, titulos, densidade = F, tamanho = c(1,1), laby = "Quantidade")
  
 ```
+
+
 #### Escolaridade
 ```{r}
 
-mod_escol1 <-lm(tr_media_com_distrator ~ escolaridade, data=bd)
+mod_escol1 <-lm(tr_media_com_distrator ~ escolaridade + grupo, data=bd)
 summary(mod_escol1)
 
-mod_escol2 <-lm(tr_media_sem_distrator ~ escolaridade, data=bd)
+mod_escol2 <-lm(tr_media_sem_distrator ~ escolaridade + grupo, data=bd)
 summary(mod_escol2)
 
 
@@ -477,10 +493,10 @@ summary(mod_escol2)
 #### Tempo desde AVE
 ```{r}
 
-mod_ave_meses1 <-lm(tr_media_com_distrator ~ ave_meses, data=bd)
+mod_ave_meses1 <-lm(tr_media_com_distrator ~ ave_meses+ grupo, data=bd)
 summary(mod_ave_meses1)
 
-mod_ave_meses2 <-lm(tr_media_sem_distrator ~ ave_meses, data=bd)
+mod_ave_meses2 <-lm(tr_media_sem_distrator ~ ave_meses + grupo, data=bd)
 summary(mod_ave_meses2)
 
 #não significativo
@@ -492,35 +508,36 @@ summary(mod_ave_meses2)
 #### Tempo que dirigia antes do AVE
 ```{r}
 
-mod_dirigia1 <-lm(tr_media_com_distrator ~ q1, data=bd)
+mod_dirigia1 <-lm(tr_media_com_distrator ~ q1 + grupo, data=bd)
 summary(mod_dirigia1)
 
-mod_dirigia2 <-lm(tr_media_sem_distrator ~ q1, data=bd)
+mod_dirigia2 <-lm(tr_media_sem_distrator ~ q1 + grupo, data=bd)
 summary(mod_dirigia2)
 
 #nao significativo
 
 ```
-#### Lado parético
+#### Lado parétipo
 ```{r}
 
 mod_lado_paretico1 <-lm(tr_media_com_distrator ~ lado_paretico + grupo, data=bd)
 summary(mod_lado_paretico1)
+anova(mod_lado_paretico1)
 
-mod_lado_paretico2 <-lm(tr_media_sem_distrator ~ lado_paretico, data=bd)
+mod_lado_paretico2 <-lm(tr_media_sem_distrator ~ lado_paretico + grupo, data=bd)
 summary(mod_lado_paretico2)
 
-anova(mod_lado_paretico1)
 #significativo
 
 ```
 #### Locais em que se sente confortável para dirigir
 ```{r}
 
-mod_locais1 <-lm(tr_media_com_distrator ~ locais, data=bd)
+mod_locais1 <-lm(tr_media_com_distrator ~ locais+ grupo, data=bd)
 summary(mod_locais1)
+anova(mod_locais1)
 
-mod_locais2 <-lm(tr_media_sem_distrator ~ locais, data=bd)
+mod_locais2 <-lm(tr_media_sem_distrator ~ locais+ grupo, data=bd)
 summary(mod_locais2)
 
 #significativo: locaisqq lugar/ rodovia
@@ -529,10 +546,10 @@ summary(mod_locais2)
 #### TUG SIMPLES
 ```{r}
 
-mod_tug_simples_segundo1 <-lm(tr_media_com_distrator ~ tug_simples_segundo, data=bd)
+mod_tug_simples_segundo1 <-lm(tr_media_com_distrator ~ tug_simples_segundo+ grupo, data=bd)
 summary(mod_tug_simples_segundo1)
 
-mod_tug_simples_segundo2 <-lm(tr_media_sem_distrator ~ tug_simples_segundo, data=bd)
+mod_tug_simples_segundo2 <-lm(tr_media_sem_distrator ~ tug_simples_segundo+ grupo, data=bd)
 summary(mod_tug_simples_segundo2)
 
 #significativo
@@ -541,10 +558,10 @@ summary(mod_tug_simples_segundo2)
 #### TUG DUPLA TAREFA
 ```{r}
 
-mod_tug_dupla_tarefa_segundos1 <-lm(tr_media_com_distrator ~ tug_dupla_tarefa_segundos, data=bd)
+mod_tug_dupla_tarefa_segundos1 <-lm(tr_media_com_distrator ~ tug_dupla_tarefa_segundos + grupo, data=bd)
 summary(mod_tug_dupla_tarefa_segundos1)
 
-mod_tug_dupla_tarefa_segundos2 <-lm(tr_media_sem_distrator ~ tug_dupla_tarefa_segundos, data=bd)
+mod_tug_dupla_tarefa_segundos2 <-lm(tr_media_sem_distrator ~ tug_dupla_tarefa_segundos + grupo, data=bd)
 summary(mod_tug_dupla_tarefa_segundos2)
 
 #significativo
@@ -553,10 +570,10 @@ summary(mod_tug_dupla_tarefa_segundos2)
 #### Nº de palavras sentado
 ```{r}
 
-mod_n_palavras_sentado1 <-lm(tr_media_com_distrator ~ n_palavras_sentado, data=bd)
+mod_n_palavras_sentado1 <-lm(tr_media_com_distrator ~ n_palavras_sentado + grupo, data=bd)
 summary(mod_n_palavras_sentado1)
 
-mod_n_palavras_sentado2 <-lm(tr_media_sem_distrator ~ n_palavras_sentado, data=bd)
+mod_n_palavras_sentado2 <-lm(tr_media_sem_distrator ~ n_palavras_sentado + grupo, data=bd)
 summary(mod_n_palavras_sentado2)
 
 #significativo
@@ -565,10 +582,10 @@ summary(mod_n_palavras_sentado2)
 #### Nº de palavras em pé
 ```{r}
 
-mod_n_palavras_em_pe1 <-lm(tr_media_com_distrator ~ n_palavras_em_pe, data=bd)
+mod_n_palavras_em_pe1 <-lm(tr_media_com_distrator ~ n_palavras_em_pe + grupo, data=bd)
 summary(mod_n_palavras_em_pe1)
 
-mod_n_palavras_em_pe2 <-lm(tr_media_sem_distrator ~ n_palavras_em_pe, data=bd)
+mod_n_palavras_em_pe2 <-lm(tr_media_sem_distrator ~ n_palavras_em_pe + grupo, data=bd)
 summary(mod_n_palavras_em_pe2)
 
 #significativo
@@ -577,10 +594,10 @@ summary(mod_n_palavras_em_pe2)
 #### ADM Tornozelo direito
 ```{r}
 
-mod_adm_tornozelo_d1 <-lm(tr_media_com_distrator ~ adm_tornozelo_d, data=bd)
+mod_adm_tornozelo_d1 <-lm(tr_media_com_distrator ~ adm_tornozelo_d + grupo, data=bd)
 summary(mod_adm_tornozelo_d1)
 
-mod_adm_tornozelo_d2 <-lm(tr_media_sem_distrator ~ adm_tornozelo_d, data=bd)
+mod_adm_tornozelo_d2 <-lm(tr_media_sem_distrator ~ adm_tornozelo_d + grupo, data=bd)
 summary(mod_adm_tornozelo_d2)
 
 #não significativo
@@ -589,10 +606,10 @@ summary(mod_adm_tornozelo_d2)
 #### Atenção automática
 ```{r}
 
-mod_fdt_atencao_automatica_tempo1 <-lm(tr_media_com_distrator ~ fdt_atencao_automatica_tempo, data=bd)
+mod_fdt_atencao_automatica_tempo1 <-lm(tr_media_com_distrator ~ fdt_atencao_automatica_tempo + grupo, data=bd)
 summary(mod_fdt_atencao_automatica_tempo1)
 
-mod_fdt_atencao_automatica_tempo2 <-lm(tr_media_sem_distrator ~ fdt_atencao_automatica_tempo, data=bd)
+mod_fdt_atencao_automatica_tempo2 <-lm(tr_media_sem_distrator ~ fdt_atencao_automatica_tempo + grupo, data=bd)
 summary(mod_fdt_atencao_automatica_tempo2)
 
 #significativo
@@ -602,10 +619,10 @@ summary(mod_fdt_atencao_automatica_tempo2)
 #### trail_b_erros 
 ```{r}
 
-mod_trail_b_erros1 <-lm(tr_media_com_distrator ~ trail_b_erros, data=bd)
+mod_trail_b_erros1 <-lm(tr_media_com_distrator ~ trail_b_erros + grupo, data=bd)
 summary(mod_trail_b_erros1)
 
-mod_trail_b_erros2 <-lm(tr_media_sem_distrator ~ trail_b_erros, data=bd)
+mod_trail_b_erros2 <-lm(tr_media_sem_distrator ~ trail_b_erros + grupo, data=bd)
 summary(mod_trail_b_erros2)
 
 #significativo
@@ -614,10 +631,10 @@ summary(mod_trail_b_erros2)
 #### trail_a_tempo
 ```{r}
 
-mod_trail_a_tempo1 <-lm(tr_media_com_distrator ~ trail_a_tempo, data=bd)
+mod_trail_a_tempo1 <-lm(tr_media_com_distrator ~ trail_a_tempo + grupo, data=bd)
 summary(mod_trail_a_tempo1)
 
-mod_trail_a_tempo2 <-lm(tr_media_sem_distrator ~ trail_a_tempo, data=bd)
+mod_trail_a_tempo2 <-lm(tr_media_sem_distrator ~ trail_a_tempo + grupo, data=bd)
 summary(mod_trail_a_tempo2)
 
 #significativo
@@ -627,10 +644,10 @@ summary(mod_trail_a_tempo2)
 #### trail_b_tempo 
 ```{r}
 
-mod_trail_b_tempo1 <-lm(tr_media_com_distrator ~ trail_b_tempo, data=bd)
+mod_trail_b_tempo1 <-lm(tr_media_com_distrator ~ trail_b_tempo + grupo, data=bd)
 summary(mod_trail_b_tempo1)
 
-mod_trail_b_tempo2 <-lm(tr_media_sem_distrator ~ trail_b_tempo, data=bd)
+mod_trail_b_tempo2 <-lm(tr_media_sem_distrator ~ trail_b_tempo + grupo, data=bd)
 summary(mod_trail_b_tempo2)
 
 #significativo
@@ -640,10 +657,10 @@ summary(mod_trail_b_tempo2)
 #### frey_copia_tempo
 ```{r}
 
-mod_frey_copia_tempo1 <-lm(tr_media_com_distrator ~ frey_copia_tempo, data=bd)
+mod_frey_copia_tempo1 <-lm(tr_media_com_distrator ~ frey_copia_tempo + grupo, data=bd)
 summary(mod_frey_copia_tempo1)
 
-mod_frey_copia_tempo2 <-lm(tr_media_sem_distrator ~ frey_copia_tempo, data=bd)
+mod_frey_copia_tempo2 <-lm(tr_media_sem_distrator ~ frey_copia_tempo + grupo, data=bd)
 summary(mod_frey_copia_tempo2)
 
 #significativo
@@ -652,10 +669,10 @@ summary(mod_frey_copia_tempo2)
 #### perdeu_placa_com_distrator 
 ```{r}
 
-mod_perdeu_placa_com_distrator1 <-lm(tr_media_com_distrator ~ perdeu_placa_com_distrator, data=bd)
+mod_perdeu_placa_com_distrator1 <-lm(tr_media_com_distrator ~ perdeu_placa_com_distrator + grupo, data=bd)
 summary(mod_perdeu_placa_com_distrator1)
 
-mod_perdeu_placa_com_distrator2 <-lm(tr_media_sem_distrator ~ perdeu_placa_com_distrator, data=bd)
+mod_perdeu_placa_com_distrator2 <-lm(tr_media_sem_distrator ~ perdeu_placa_com_distrator + grupo, data=bd)
 summary(mod_perdeu_placa_com_distrator2)
 
 #significativo
@@ -664,10 +681,10 @@ summary(mod_perdeu_placa_com_distrator2)
 #### perdeu_placa_sem_distrator 
 ```{r}
 
-mod_perdeu_placa_sem_distrator1 <-lm(tr_media_com_distrator ~ perdeu_placa_sem_distrator, data=bd)
+mod_perdeu_placa_sem_distrator1 <-lm(tr_media_com_distrator ~ perdeu_placa_sem_distrator + grupo, data=bd)
 summary(mod_perdeu_placa_sem_distrator1)
 
-mod_perdeu_placa_sem_distrator2 <-lm(tr_media_sem_distrator ~ perdeu_placa_sem_distrator, data=bd)
+mod_perdeu_placa_sem_distrator2 <-lm(tr_media_sem_distrator ~ perdeu_placa_sem_distrator + grupo, data=bd)
 summary(mod_perdeu_placa_sem_distrator2)
 
 #nao significativo
@@ -676,10 +693,10 @@ summary(mod_perdeu_placa_sem_distrator2)
 #### deixou_via_com_distrator 
 ```{r}
 
-mod_deixou_a_via_com_distrator1 <-lm(tr_media_com_distrator ~ deixou_via_com_distrator, data=bd)
+mod_deixou_a_via_com_distrator1 <-lm(tr_media_com_distrator ~ deixou_via_com_distrator + grupo, data=bd)
 summary(mod_deixou_a_via_com_distrator1)
 
-mod_deixou_a_via_com_distrator2 <-lm(tr_media_sem_distrator ~ deixou_via_com_distrator, data=bd)
+mod_deixou_a_via_com_distrator2 <-lm(tr_media_sem_distrator ~ deixou_via_com_distrator + grupo, data=bd)
 summary(mod_deixou_a_via_com_distrator2)
 
 #nao significativo
@@ -687,10 +704,10 @@ summary(mod_deixou_a_via_com_distrator2)
 ```
 #### deixou_a_via_sem_distrator 
 ```{r}
-mod_deixou_a_via_sem_distrator1 <-lm(tr_media_com_distrator ~ deixou_a_via_sem_distrator, data=bd)
+mod_deixou_a_via_sem_distrator1 <-lm(tr_media_com_distrator ~ deixou_a_via_sem_distrator + grupo, data=bd)
 summary(mod_deixou_a_via_sem_distrator1)
 
-mod_deixou_via_a_sem_distrator2 <-lm(tr_media_sem_distrator ~ deixou_a_via_sem_distrator, data=bd)
+mod_deixou_via_a_sem_distrator2 <-lm(tr_media_sem_distrator ~ deixou_a_via_sem_distrator + grupo, data=bd)
 summary(mod_deixou_via_a_sem_distrator2)
 
 #nao significativo
@@ -699,10 +716,10 @@ summary(mod_deixou_via_a_sem_distrator2)
 #### velocidade_com_distrator
 ```{r}
 
-mod_velocidade_com_distrator1 <-lm(tr_media_com_distrator ~ velocidade_com_distrator, data=bd)
+mod_velocidade_com_distrator1 <-lm(tr_media_com_distrator ~ velocidade_com_distrator + grupo, data=bd)
 summary(mod_velocidade_com_distrator1)
 
-mod_velocidade_com_distrator2 <-lm(tr_media_sem_distrator ~ velocidade_com_distrator, data=bd)
+mod_velocidade_com_distrator2 <-lm(tr_media_sem_distrator ~ velocidade_com_distrator + grupo, data=bd)
 summary(mod_velocidade_com_distrator2)
 
 #significativo
@@ -711,10 +728,10 @@ summary(mod_velocidade_com_distrator2)
 #### velocidade_sem_distrator
 ```{r}
 
-mod_velocidade_sem_distrator1 <-lm(tr_media_com_distrator ~ velocidade_sem_distrator, data=bd)
+mod_velocidade_sem_distrator1 <-lm(tr_media_com_distrator ~ velocidade_sem_distrator + grupo, data=bd)
 summary(mod_velocidade_sem_distrator1)
 
-mod_velocidade_sem_distrator2 <-lm(tr_media_sem_distrator ~ velocidade_sem_distrator, data=bd)
+mod_velocidade_sem_distrator2 <-lm(tr_media_sem_distrator ~ velocidade_sem_distrator + grupo, data=bd)
 summary(mod_velocidade_sem_distrator2)
 
 #significativo
@@ -722,170 +739,268 @@ summary(mod_velocidade_sem_distrator2)
 ```
 
 
-#### "velocidade_processamento_tempo"
+#"velocidade_processamento_tempo"
 ```{r}
-vel_proc_ctempo<-lm(bd$tr_media_com_distrator ~ bd$velocidade_processamento_tempo, data=bd)
-vel_proc_stempo<-lm(bd$tr_media_sem_distrator ~ bd$velocidade_processamento_tempo, data=bd)
+vel_proc_ctempo<-lm(bd$tr_media_com_distrator ~ bd$velocidade_processamento_tempo + grupo, data=bd)
+vel_proc_stempo<-lm(bd$tr_media_sem_distrator ~ bd$velocidade_processamento_tempo + grupo, data=bd)
 summary(vel_proc_ctempo)
 summary(vel_proc_stempo)
 #significante
 ```
 
-#### "atencao_controlada_tempo"
+#"atencao_controlada_tempo"
 ```{r}
-at_ctrl_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_tempo)
+at_ctrl_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_tempo + bd$grupo)
 summary(at_ctrl_ctempo)
-at_ctrl_stempo<-lm(bd$tr_media_sem_distrator~bd$atencao_controlada_tempo)
+at_ctrl_stempo<-lm(bd$tr_media_sem_distrator~bd$atencao_controlada_tempo+ bd$grupo)
 summary(at_ctrl_stempo)
 #significante
 ```
 
-#### "atencao_executiva_tempo"
+#"atencao_executiva_tempo"
 ```{r}
-at_exe_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_tempo)
+at_exe_ctempo<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_tempo + bd$grupo)
 summary(at_exe_ctempo)
-at_exe_stempo<-lm(bd$tr_media_sem_distrator~bd$atencao_executiva_tempo)
+at_exe_stempo<-lm(bd$tr_media_sem_distrator~bd$atencao_executiva_tempo+ bd$grupo)
 summary(at_exe_stempo)
 #significante
 ```
 
-#### atencao_automatica_erros_total
+#atencao_automatica_erros_total
 ```{r}
-at_auto_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_automatica_erros_total)
+at_auto_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_automatica_erros_total+ bd$grupo)
 summary(at_auto_cerro)
-at_auto_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_automatica_erros_total)
+at_auto_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_automatica_erros_total+ bd$grupo)
 summary(at_auto_serro)
 #n signif
 ```
 
-#### velocidade_processamento_erros_total
+#velocidade_processamento_erros_total
 ```{r}
-vel_proc_cerro<-lm(bd$tr_media_com_distrator~bd$velocidade_processamento_erros_total)
+vel_proc_cerro<-lm(bd$tr_media_com_distrator~bd$velocidade_processamento_erros_total+ bd$grupo)
 summary(vel_proc_cerro)
-vel_proc_serro<-lm(bd$tr_media_sem_distrator~bd$velocidade_processamento_erros_total)
+vel_proc_serro<-lm(bd$tr_media_sem_distrator~bd$velocidade_processamento_erros_total+ bd$grupo)
 summary(vel_proc_serro)
 #n signif
 ```
-#### atencao_controlada_erros_total
+#atencao_controlada_erros_total
 ```{r}
-at_ctrl_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_erros_total)
+at_ctrl_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_controlada_erros_total+ bd$grupo)
 summary(at_ctrl_cerro)
-at_ctrl_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_controlada_erros_total)
+at_ctrl_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_controlada_erros_total+ bd$grupo)
 summary(at_ctrl_serro)
 #n signif
 ```
 
-#### atencao_executiva_erros_total
+#atencao_executiva_erros_total
 ```{r}
-at_exe_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_erros_total)
+at_exe_cerro<-lm(bd$tr_media_com_distrator~bd$atencao_executiva_erros_total+ bd$grupo)
 summary(at_exe_cerro)
-at_exe_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_executiva_erros_total)
+at_exe_serro<-lm(bd$tr_media_sem_distrator~bd$atencao_executiva_erros_total+ bd$grupo)
 summary(at_exe_serro)
 #nao signif
 ```
 
-#### inibição_total
+#inibição_total
 ```{r}
-ini_c<-lm(bd$tr_media_com_distrator~bd$inibição_total)
+ini_c<-lm(bd$tr_media_com_distrator~bd$inibição_total+ bd$grupo)
 summary(ini_c)
-ini_s<-lm(bd$tr_media_sem_distrator~bd$inibição_total)
+ini_s<-lm(bd$tr_media_sem_distrator~bd$inibição_total+ bd$grupo)
 summary(ini_s)
 #significante
 ```
-#### flexibilidade_tempo
+#flexibilidade_tempo
 ```{r}
-flex_c<-lm(bd$tr_media_com_distrator~bd$flexibilidade_tempo)
-# summary(flex_c)
-flex_s<-lm(bd$tr_media_sem_distrator~bd$flexibilidade_tempo)
-# summary(flex_s)
+flex_c<-lm(bd$tr_media_com_distrator~bd$flexibilidade_tempo+ bd$grupo)
+summary(flex_c)
+flex_s<-lm(bd$tr_media_sem_distrator~bd$flexibilidade_tempo+ bd$grupo)
+summary(flex_s)
 #significante
-anova(flex_c)
 ```
 
-#### trail_a_erros
+#trail_a_erros
 ```{r}
-mod_trail_a_erros1 <-lm(tr_media_com_distrator ~ trail_a_erros, data=bd)
+mod_trail_a_erros1 <-lm(tr_media_com_distrator ~ trail_a_erros+ grupo, data=bd)
 summary(mod_trail_a_erros1)
 
-mod_trail_a_erros2 <-lm(tr_media_sem_distrator ~ trail_a_erros, data=bd)
+mod_trail_a_erros2 <-lm(tr_media_sem_distrator ~ trail_a_erros+ grupo, data=bd)
 summary(mod_trail_a_erros2)
 #nao significante
 ```
 
-#### Anova
+#GRUPO
 ```{r}
-flex_c<-lm(bd$tr_media_com_distrator~bd$flexibilidade_tempo)
-flex_s<-lm(bd$tr_media_sem_distrator~bd$flexibilidade_tempo)
+mod_grupo1 <-lm(tr_media_com_distrator ~ grupo, data=bd)
+summary(mod_grupo1)
 
-anova(lm(bd$tr_media_com_distrator ~ bd$flexibilidade_tempo + bd$grupo),flex_c)
-anova(lm(bd$tr_media_sem_distrator ~ bd$flexibilidade_tempo + bd$grupo),flex_s)
+mod_grupo2 <-lm(tr_media_sem_distrator ~ grupo, data=bd)
+summary(mod_grupo2)
+#significante
 ```
 
 
 ```{r}
-mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$grupo)
-anova(mod_1,ini_c)
-mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$grupo)
-anova(mod_1,ini_s)
-
-```
-
-```{r}
-mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo)
-mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$grupo)
-anova(mod_2,mod_1)
-mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo)
-mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$grupo)
-anova(mod_2,mod_1)
-
-```
-
-```{r}
-mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo)
-mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$grupo)
-anova(mod_2,mod_1)
-
-mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo)
-mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$grupo)
-anova(mod_2,mod_1)
-```
-
-```{r}
-mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo)
-mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$grupo)
-anova(mod_2,mod_1)
-
-mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo)
-mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$grupo)
-anova(mod_2,mod_1)
-```
 
 
-
-```{r}
-mod_1 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$trail_b_tempo)
-mod_2 <- lm(bd$tr_media_com_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo+ bd$trail_b_tempo + bd$grupo)
-anova(mod_2,mod_1)
-mod_1 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo + bd$trail_b_tempo)
-mod_2 <- lm(bd$tr_media_sem_distrator ~ bd$"inibição_total" + bd$flexibilidade_tempo+ bd$velocidade_processamento_tempo + bd$atencao_executiva_tempo+ bd$trail_b_tempo + bd$grupo)
-anova(mod_2,mod_1)
-
-```
-### step forward
-#### sem distrator
-```{r}
-library(leaps)
-```
-
-
-```{r}
-# sem escolariade
-variaveis_sem<-c('tr_media_sem_distrator',
-                 'locais', 
-                 'tug_simples_segundo', 'tug_dupla_tarefa_segundos', 'n_palavras_em_pe', 'trail_a_tempo', 'trail_b_tempo', 'frey_copia_tempo', 
-                'velocidade_sem_distrator', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo' 
+variaveis_com<-c('tr_media_com_distrator',  
+                 'tug_simples_segundo', 'tug_dupla_tarefa_segundos', 'n_palavras_sentado', 'n_palavras_em_pe', 'trail_a_tempo', 'trail_b_tempo', 'frey_copia_tempo', 
+                'velocidade_com_distrator', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo', 'grupo'
                  )
+
+mod_todas_com = lm(tr_media_com_distrator~., bd[, variaveis_com])
+summary(mod_todas_com)
+plot(mod_todas_com)
 ```
+
+
+```{r}
+variaveis_sem<-c('tr_media_sem_distrator',
+                 'tug_simples_segundo', 'tug_dupla_tarefa_segundos', 'n_palavras_sentado','n_palavras_em_pe', 'trail_a_tempo', 'trail_b_tempo', 'frey_copia_tempo', 
+                'velocidade_sem_distrator', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo', 'grupo'
+                 )
+
+mod_todas_sem = lm(tr_media_sem_distrator~., bd[, variaveis_sem])
+summary(mod_todas_sem)
+plot(mod_todas_sem)
+```
+
+# Normalidade
+```{r}
+library(ggpubr)
+
+ggqqplot(bd$tr_media_com_distrator)
+ggqqplot(bd$tr_media_sem_distrator)
+
+shapiro.test(bd$tr_media_com_distrator)
+shapiro.test(bd$tr_media_sem_distrator)
+
+```
+
+
+
+
+
+
+## MODELO COM DISTRATOR
+```{r}
+## TESTE DE MODELO:  coM DISTRATOR
+# stepwise forward regression
+mod_com <- regsubsets(tr_media_com_distrator~., bd[, variaveis_com], nvmax=length(variaveis_com),
+ force.in=c('trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo' ), intercept=TRUE,
+ method="forward")
+
+
+```
+
+
+```{r}
+#summary(mod_com)
+
+resultado = summary(mod_com)
+
+(num_coef <- which.min(resultado$bic) )# numero de coeficientes escolhidos
+(fw_coef <- coef(mod_com, num_coef))
+
+```
+```{r}
+fit_all_sum = resultado
+
+par(mfrow = c(2, 2))
+plot(fit_all_sum$rss, xlab = "Number of Variables", ylab = "RSS", type = "b")
+
+plot(fit_all_sum$adjr2, xlab = "Number of Variables", ylab = "Adjusted RSq", type = "b")
+best_adj_r2 = which.max(fit_all_sum$adjr2)
+points(best_adj_r2, fit_all_sum$adjr2[best_adj_r2],
+       col = "red",cex = 2, pch = 20)
+
+plot(fit_all_sum$cp, xlab = "Number of Variables", ylab = "Cp", type = 'b')
+best_cp = which.min(fit_all_sum$cp)
+points(best_cp, fit_all_sum$cp[best_cp], 
+       col = "red", cex = 2, pch = 20)
+
+plot(fit_all_sum$bic, xlab = "Number of Variables", ylab = "BIC", type = 'b')
+best_bic = which.min(fit_all_sum$bic)
+points(best_bic, fit_all_sum$bic[best_bic], 
+       col = "red", cex = 2, pch = 20)
+
+
+```
+```{r}
+## Modelo escolhido, mais grupo:
+
+mod_com_fim <- lm(tr_media_com_distrator~., bd[, c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
+summary(mod_com_fim)
+plot(mod_com_fim)
+
+confint(mod_com_fim)
+
+```
+```{r}
+## Modelo escolhido, sem grupo:
+
+mod_com_fim2 <- lm(tr_media_com_distrator~., bd[, c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo') ])
+summary(mod_com_fim2)
+
+```
+```{r}
+## Faz anova, comparando os dois grupos:
+
+mod_anova = anova(mod_com_fim2, mod_com_fim)
+mod_anova$`Pr(>F)`[2]
+```
+
+
+```{r}
+## LSD:
+
+#install.packages('agricolae')
+library(agricolae)
+out <- LSD.test(mod_com_fim, 'grupo', group = TRUE, p.adj="none")
+out
+plot(out, variation = 'SD')
+#controle é diferente 
+```
+```{r}
+set.seed(112358)
+n <-length(bd$tr_media_com_distrator)  #número de observações na amostra
+B <- 1000 #número de amostras de bootstrap 
+variable <-1:length(bd$tr_media_com_distrator)
+
+amostra_bootstrap <- matrix(sample(variable, size=n*B, replace=TRUE), nrow=n, ncol = B)
+dim(amostra_bootstrap)
+
+amostra_bootstrap<-as.data.frame(amostra_bootstrap)
+#View(amostra_bootstrap)
+
+valores_p <-c()
+
+```
+
+```{r}
+for (i in 1:1000){
+  #com grupo
+  mod1<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
+  
+  #sem grupo:
+    mod2<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo') ])
+    
+    teste<-anova(mod1, mod2)
+  valores_p<-c(valores_p, teste$`Pr(>F)`[2])
+}
+
+```
+
+
+```{r}
+####quantidade de valores_p menores que 0.05
+length(valores_p[valores_p<0.05])
+
+####quantidade de valores_p menores que 0.1
+length(valores_p[valores_p<0.1])
+
+```
+
+
 
 ```{r}
 ## TESTE DE MODELO:  sem DISTRATOR
@@ -899,11 +1014,11 @@ resultado = summary(mod_sem)
 
 (num_coef <- which.min(resultado$bic) )# numero de coeficientes escolhidos
 (fw_coef <- coef(mod_sem, num_coef))
-# names(fw_coef)
 ```
 
 
 ```{r}
+
 fit_all_sum = resultado
 
 par(mfrow = c(2, 2))
@@ -926,54 +1041,18 @@ points(best_bic, fit_all_sum$bic[best_bic],
 ```
 
 ```{r}
-# sem distrator
-mod_1 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$velocidade_sem_distrator, data = bd)
+mod_1 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo, data = bd)
 
-mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$velocidade_sem_distrator+bd$grupo, data = bd)
+mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$grupo, data = bd)
+plot(mod_2)
 
 anova(mod_2,mod_1)
+summary(mod_2)
+confint(mod_2)
 ```
 
-### Boostrap
-```{r}
-set.seed(112358)
-n <-length(bd$tr_media_com_distrator)  #número de observações na amostra
-B <- 1000 #número de amostras de bootstrap 
-variable <-1:length(bd$tr_media_com_distrator)
-
-amostra_bootstrap <- matrix(sample(variable, size=n*B, replace=TRUE), nrow=n, ncol = B)
-dim(amostra_bootstrap)
-
-amostra_bootstrap<-as.data.frame(amostra_bootstrap)
-#View(amostra_bootstrap)
-
-valores_p <-c()
-```
-
-```{r}
-for (i in 1:1000){
-  #com grupo
-  mod1<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
-  
-  #sem grupo:
-    mod2<-lm(tr_media_com_distrator~., bd[amostra_bootstrap[, i], c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo') ])
-    
-    teste<-anova(mod1, mod2)
-  valores_p<-c(valores_p, teste$`Pr(>F)`[2])
-}
-```
-
-
-```{r}
-####quantidade de valores_p menores que 0.05
-length(valores_p[valores_p<0.05])
-
-####quantidade de valores_p menores que 0.1
-length(valores_p[valores_p<0.1])
-```
 
 #### sem distrator
-
 
 ```{r}
 set.seed(112358)
@@ -990,14 +1069,15 @@ amostra_bootstrap<-as.data.frame(amostra_bootstrap)
 valores_p <-c()
 ```
 
+
 ```{r}
 valores_p <-c()
 for (i in 1:1000){
   #com grupo
-  mod1<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo',"n_palavras_em_pe",'grupo') ])
+  mod1<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
   
   #sem grupo:
-    mod2<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo',"n_palavras_em_pe") ])
+    mod2<-lm(tr_media_sem_distrator~., bd[amostra_bootstrap[, i], c('tr_media_sem_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo') ])
     
     teste<-anova(mod1, mod2)
   valores_p<-c(valores_p, teste$`Pr(>F)`[2])
@@ -1012,61 +1092,34 @@ length(valores_p[valores_p<0.05])
 ####quantidade de valores_p menores que 0.1
 length(valores_p[valores_p<0.1])
 ```
-
-
-### LSD
-#### sem distrator 5 principais
+25 KB
 ```{r}
-## LSD:
+# LSD:
 
-library(agricolae)
-mod_2 <- lm(bd$tr_media_sem_distrator~bd$trail_b_tempo+bd$frey_copia_tempo+bd$velocidade_processamento_tempo+bd$inibição_total+bd$flexibilidade_tempo+bd$grupo, data = bd)
-# summary(mod_2)
-out <- LSD.test(mod_2, 'bd$grupo', group = TRUE, p.adj="none")
+out <- LSD.test(mod_2, 'grupo', group = TRUE, p.adj="none")
 out
-out$groups <- out$groups %>% arrange(factor(row.names(out$groups),levels = c("Controle","AVE dirige", "AVE não dirige"))) # para ordernar a ordem em que os grupos aparecem no grafico
-plot(out, variation = 'SD', main= "Teste LSD - Tempo de Reação Sem Distrator")
-# plot(out, variation = 'SD', main= "Teste LSD - Grupos e Desvio Padrão - Tempo de Reação Sem Distrator")
+plot(out)
 #controle é diferente 
+
 ```
-
-<!-- #### sem distrator 5 principais -->
-<!-- ```{r} -->
-<!-- ## LSD: -->
-
-<!-- library(agricolae) -->
-<!-- mod_2 <- lm(bd$tr_media_sem_distrator~bd$inibição_total+bd$grupo, data = bd) -->
-<!-- summary(mod_2) -->
-<!-- out <- LSD.test(mod_2, 'bd$grupo', group = TRUE, p.adj="none") -->
-<!-- out -->
-<!-- plot(out, variation = 'SD') -->
-<!-- #controle é diferente  -->
-<!-- ``` -->
-
-
-### Com distrator
+#Teste NÃO Paramétricos
 ```{r}
-## Modelo escolhido, mais grupo:
+kruskal.test(velocidade_processamento_tempo~grupo, bd)
 
-mod_com_fim <- lm(tr_media_com_distrator~., bd[, c('tr_media_com_distrator', 'trail_b_tempo', 'frey_copia_tempo', 'velocidade_processamento_tempo', 'inibição_total', 'flexibilidade_tempo','grupo') ])
-summary(mod_com_fim)
+pairwise.wilcox.test(bd$velocidade_processamento_tempo, bd$grupo,
+                 p.adjust.method = "none")
+
 ```
-
-
 ```{r}
-## LSD:
+library('nparcomp')
+nparcomp(velocidade_processamento_tempo~grupo, bd, alternative = 'two.sided')
 
-#install.packages('agricolae')
-library(agricolae)
-out <- LSD.test(mod_com_fim, 'grupo', group = TRUE, p.adj="none")
-out$means
-out$groups <- out$groups %>% arrange(factor(row.names(out$groups),levels = c("Controle","AVE dirige", "AVE não dirige"))) # para ordernar a ordem em que os grupos aparecem no grafico
-plot(out, variation = 'SD', main= "Teste LSD - Tempo de Reação Com Distrator")
-# plot(out, variation = 'SD', main= "Teste LSD - Grupos e Desvio Padrão - Reação Com Distrator")
-#controle é diferente 
 ```
-
-### TESTES DE KRUSKAL WALL
+```{r}
+metodo = mctp(velocidade_processamento_tempo~grupo, bd, type='Tukey', alternative = 'two.sided', plot.simci=T)
+summary(metodo)
+```
+# TESTES DE KRUSKAL WALL
 ```{r}
 #Escolaridade:-----
 kruskal.test(bd$escolaridade, bd$grupo)
@@ -1132,11 +1185,9 @@ kruskal.test(bd$inibição_total, bd$grupo)
 kruskal.test(bd$flexibilidade_tempo, bd$grupo)
 
 ```
-
-### Testes dunn
 ```{r}
 #install.packages('rstatix')
-#library(rstatix)
+library(rstatix)
 
 #Escolaridade:-----
 dunn_test(bd, escolaridade~grupo, p.adjust.method = "none")
@@ -1153,9 +1204,6 @@ dunn_test(bd, n_palavras_sentado~grupo, p.adjust.method = "none")
 #Palavras em pé:----------
 dunn_test(bd, n_palavras_em_pe~grupo, p.adjust.method = "none")
 
-#ADM TORNOZELO DIREITO:----------
-dunn_test(bd, adm_tornozelo_d~grupo, p.adjust.method = "none")
-
 #Atenção automática:----------
 dunn_test(bd, fdt_atencao_automatica_tempo~grupo, p.adjust.method = "none")
 
@@ -1170,21 +1218,6 @@ dunn_test(bd, frey_copia_tempo~grupo, p.adjust.method = "none")
 
 #Perdeu placa com distrator:----------
 dunn_test(bd, perdeu_placa_com_distrator~grupo, p.adjust.method = "none")
-
-#Perdeu placa sem distrator:----------
-dunn_test(bd, perdeu_placa_sem_distrator~grupo, p.adjust.method = "none")
-
-#Deixou via com distrator:----------
-dunn_test(bd, deixou_via_com_distrator~grupo, p.adjust.method = "none")
-
-#Deixou via sem distrator:----------
-dunn_test(bd, deixou_a_via_sem_distrator~grupo, p.adjust.method = "none")
-
-#Velocidade com distrator:----------
-dunn_test(bd, velocidade_com_distrator~grupo, p.adjust.method = "none")
-
-#Velocidade sem distrator:----------
-dunn_test(bd, velocidade_sem_distrator~grupo, p.adjust.method = "none")
 
 #velocidade de processamento: ---------
 dunn_test(bd, velocidade_processamento_tempo~grupo, p.adjust.method = "none")
@@ -1201,5 +1234,118 @@ dunn_test(bd, inibição_total~grupo, p.adjust.method = "none")
 #Flexibilidade: ---------
 dunn_test(bd, flexibilidade_tempo~grupo, p.adjust.method = "none")
 
-# abline(v=0.1, col="blue")
 ```
+
+```{r}
+#install.packages('DescTools')
+#library('DescTools')
+
+#Escolaridade:-----
+DunnTest(bd$velocidade_com_distrator, bd$grupo, method = "none")
+
+```
+
+#Perguntas
+```{r}
+qualidade_vida = table(bd$grupo, bd$q9)
+qualidade_vida
+
+acidentes = table(bd$grupo, bd$q4)
+acidentes
+
+dificuldade_dirigir = table(bd$grupo, bd$q7)
+dificuldade_dirigir
+
+dirige_menos = table(bd$grupo, bd$q8)
+dirige_menos
+```
+
+
+```{r}
+#library(rstatix)
+#library(GmAMisc)
+#Escolaridade:-----
+#dunn_test(bd, escolaridade~grupo, p.adjust.method = "none")
+kwPlot(bd$escolaridade, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#TUG SIMPLES:----------
+#dunn_test(bd, tug_simples_segundo~grupo, p.adjust.method = "none")
+kwPlot(bd$tug_simples_segundo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#TUG DUPLA:----------
+#dunn_test(bd, tug_dupla_tarefa_segundos~grupo, p.adjust.method = "none")
+kwPlot(bd$tug_dupla_tarefa_segundos, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Palavras sentado:----------
+#dunn_test(bd, n_palavras_sentado~grupo, p.adjust.method = "none")
+kwPlot(bd$n_palavras_sentado, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Palavras em pé:----------
+#dunn_test(bd, n_palavras_em_pe~grupo, p.adjust.method = "none")
+kwPlot(bd$n_palavras_em_pe, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#ADM TORNOZELO DIREITO:----------
+#dunn_test(bd, adm_tornozelo_d~grupo, p.adjust.method = "none")
+kwPlot(bd$adm_tornozelo_d, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Atenção automática:----------
+#dunn_test(bd, fdt_atencao_automatica_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$fdt_atencao_automatica_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Trail A:----------
+#dunn_test(bd, trail_a_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$fdt_atencao_automatica_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Trail B:----------
+#dunn_test(bd, trail_b_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$trail_b_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+#Figura de Rey:----------
+#dunn_test(bd, frey_copia_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$frey_copia_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Perdeu placa com distrator:----------
+#dunn_test(bd, perdeu_placa_com_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$perdeu_placa_com_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+##Perdeu placa sem distrator:----------
+#dunn_test(bd, perdeu_placa_sem_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$perdeu_placa_sem_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Deixou via com distrator:----------
+#dunn_test(bd, deixou_via_com_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$deixou_via_com_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Deixou via sem distrator:----------
+#dunn_test(bd, deixou_a_via_sem_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$deixou_a_via_sem_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Velocidade com distrator:----------
+#dunn_test(bd, velocidade_com_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$velocidade_com_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+##Velocidade sem distrator:----------
+#dunn_test(bd, velocidade_sem_distrator~grupo, p.adjust.method = "none")
+kwPlot(bd$velocidade_sem_distrator, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#velocidade de processamento: ---------
+#dunn_test(bd, velocidade_processamento_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$velocidade_processamento_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Atenção controlada: ---------
+#dunn_test(bd, atencao_controlada_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$atencao_controlada_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Atenção executiva: ---------
+#dunn_test(bd, atencao_executiva_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$atencao_executiva_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Flexibilidade: ---------
+#dunn_test(bd, flexibilidade_tempo~grupo, p.adjust.method = "none")
+kwPlot(bd$flexibilidade_tempo, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+#Inibição: ---------
+#dunn_test(bd, bd$"inibição_total"~grupo, p.adjust.method = "none")
+kwPlot(bd$inibição_total, bd$grupo, strip=TRUE, notch=TRUE, posthoc=TRUE, adjust = "none")
+abline(v=0.1, col="blue")
+```
+
